@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "google.geminicodeassist",
+        "cweijan.vscode-database-client2",
+        "esbenp.prettier-vscode",
+        "gruntfuggly.todo-tree",
+        "vscode-icons-team.vscode-icons",
+        "mikestead.dotenv"
+    ]
+}

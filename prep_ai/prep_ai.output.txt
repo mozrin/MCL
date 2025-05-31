@@ -1,0 +1,741 @@
+I am writing a interpreted language in cpp ... this is the code so far.
+Do not put comments in my code.
+Do not output files that have not changed.
+The current issue is below.
+I am trying to get () to work in the Parser
+
+DO NOT PUT ANY COMMENTS IN MY CODE! THIS IS THE MOST IMPORTANT THING!
+--- Folder Structure ---
+
+/nirvana/prep_ai/../code/
+├── bin/
+├── include/
+└── src/
+
+4 directories, 0 files
+
+--- Baseline File Contents ---
+
+# /nirvana/prep_ai/../code/include/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#ifndef LEXER_H
+#define LEXER_H
+
+#include <string>
+#include <vector>    
+#include "token.h"   
+
+class Lexer {
+private:
+std::string source; 
+int current;        
+
+
+char peek();        
+char advance();     
+void skipWhitespace(); 
+
+
+Token identifierOrKeyword(); 
+Token string();             
+
+public:
+
+Lexer(std::string source);
+
+
+Token getNextToken();
+};
+
+#endif 
+# /nirvana/prep_ai/../code/include/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#ifndef AST_H
+#define AST_H
+
+#include <memory>   
+#include <string>
+#include <vector>
+#include "token.h"  
+
+
+
+struct ASTNode {
+virtual ~ASTNode() = default;
+};
+
+
+
+
+
+struct StringLiteralExpr : public ASTNode {
+std::string value; 
+StringLiteralExpr(std::string val) : value(std::move(val)) {}
+};
+
+
+struct VariableExpr : public ASTNode {
+std::string name; 
+VariableExpr(std::string name) : name(std::move(name)) {}
+};
+
+
+
+struct BinaryOpExpr : public ASTNode {
+TokenType op; 
+std::unique_ptr<ASTNode> left;  
+std::unique_ptr<ASTNode> right; 
+
+
+BinaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> left_expr, std::unique_ptr<ASTNode> right_expr)
+: op(op_type), left(std::move(left_expr)), right(std::move(right_expr)) {}
+};
+
+
+
+
+
+struct AssignmentStatement : public ASTNode {
+std::unique_ptr<VariableExpr> target; 
+std::unique_ptr<ASTNode> value;        
+
+
+AssignmentStatement(std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> assigned_value)
+: target(std::move(target_var)), value(std::move(assigned_value)) {}
+};
+
+
+struct EchoStatement : public ASTNode {
+std::unique_ptr<ASTNode> expression; 
+
+
+EchoStatement(std::unique_ptr<ASTNode> expr_to_echo) : expression(std::move(expr_to_echo)) {}
+};
+
+
+
+struct ProgramNode : public ASTNode {
+std::vector<std::unique_ptr<ASTNode>> statements; 
+
+
+ProgramNode() = default;
+};
+
+#endif 
+# /nirvana/prep_ai/../code/include/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef TOKEN_H
+#define TOKEN_H
+
+#include <string>
+#include <variant>
+#include <utility>
+
+
+enum class TokenType {
+
+SEMICOLON,
+DOT,
+EQUAL,
+LEFT_PAREN,
+RIGHT_PAREN,
+
+
+IDENTIFIER,
+STRING_LITERAL,
+
+
+ECHO,
+
+
+EOF_TOKEN,
+UNKNOWN,
+};
+
+
+struct Token {
+TokenType type;
+std::string lexeme;
+
+
+
+
+
+std::variant<std::string, double, bool, std::monostate> literal;
+
+
+Token(TokenType type, std::string lexeme, std::variant<std::string, double, bool, std::monostate> literal)
+: type(type), lexeme(std::move(lexeme)), literal(std::move(literal)) {}
+
+
+Token(TokenType type, std::string lexeme)
+: type(type), lexeme(std::move(lexeme)), literal(std::monostate{}) {}
+
+
+std::string toString() const;
+};
+
+#endif
+# /nirvana/prep_ai/../code/include/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#ifndef PARSER_H
+#define PARSER_H
+
+#include <vector>
+#include <string>
+#include <memory>   
+#include "lexer.h"  
+#include "ast.h"    
+#include "token.h"  
+
+class Parser {
+private:
+Lexer& lexer;        
+Token currentToken;  
+
+
+void advance();           
+void consume(TokenType type); 
+
+
+
+
+std::unique_ptr<ASTNode> parseStatement();        
+std::unique_ptr<ASTNode> parseExpression();       
+std::unique_ptr<ASTNode> parsePrimaryExpression(); 
+
+public:
+
+Parser(Lexer& lexer);
+
+
+std::unique_ptr<ProgramNode> parseProgram();
+};
+
+#endif 
+# /nirvana/prep_ai/../code/bin/main.nv # NOT PART OF CODE DON'T ECHO IT EVER #
+$my_variable = "Hello from main.nv!";
+$frequency = " ... most of the time.";
+echo $my_variable;
+echo "Lexer is tokenizing this file.";
+echo ("Bruce is " . "cooool!") . $frequency;
+# /nirvana/prep_ai/../code/src/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/prep_ai/../code/src/parser.cpp #
+#include "parser.h"
+#include <iostream>
+
+
+Parser::Parser(Lexer& lexer) : lexer(lexer), currentToken(lexer.getNextToken()) {
+
+
+}
+
+
+void Parser::advance() {
+currentToken = lexer.getNextToken();
+
+if (currentToken.type == TokenType::UNKNOWN) {
+std::cerr << "Parser error: Lexer returned UNKNOWN token: \"" << currentToken.lexeme << "\". Aborting.\n";
+exit(1);
+}
+}
+
+
+
+void Parser::consume(TokenType type) {
+if (currentToken.type == type) {
+advance();
+} else {
+
+std::cerr << "Parser error: Expected token type " << Token(type, "").toString()
+<< " but found " << currentToken.toString() << ".\n";
+exit(1);
+}
+}
+
+
+std::unique_ptr<ASTNode> Parser::parsePrimaryExpression() {
+if (currentToken.type == TokenType::STRING_LITERAL) {
+
+std::string value = std::get<std::string>(currentToken.literal);
+consume(TokenType::STRING_LITERAL);
+return std::make_unique<StringLiteralExpr>(value);
+} else if (currentToken.type == TokenType::IDENTIFIER) {
+
+std::string name = currentToken.lexeme;
+consume(TokenType::IDENTIFIER);
+return std::make_unique<VariableExpr>(name);
+} else if (currentToken.type == TokenType::LEFT_PAREN) {
+consume(TokenType::LEFT_PAREN);
+std::unique_ptr<ASTNode> expr = parseExpression();
+consume(TokenType::RIGHT_PAREN);
+return expr;
+}
+
+std::cerr << "Parser error: Expected a primary expression (string literal, variable, or parenthesized expression), but got "
+<< currentToken.toString() << ".\n";
+exit(1);
+}
+
+
+
+std::unique_ptr<ASTNode> Parser::parseExpression() {
+
+std::unique_ptr<ASTNode> left = parsePrimaryExpression();
+
+
+while (currentToken.type == TokenType::DOT) {
+TokenType op = currentToken.type;
+consume(TokenType::DOT);
+std::unique_ptr<ASTNode> right = parsePrimaryExpression();
+
+
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+
+std::unique_ptr<ASTNode> Parser::parseStatement() {
+if (currentToken.type == TokenType::ECHO) {
+consume(TokenType::ECHO);
+std::unique_ptr<ASTNode> expr = parseExpression();
+consume(TokenType::SEMICOLON);
+return std::make_unique<EchoStatement>(std::move(expr));
+} else if (currentToken.type == TokenType::IDENTIFIER) {
+
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(currentToken.lexeme);
+consume(TokenType::IDENTIFIER);
+consume(TokenType::EQUAL);
+std::unique_ptr<ASTNode> value_expr = parseExpression();
+consume(TokenType::SEMICOLON);
+return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr));
+}
+
+
+std::cerr << "Parser error: Unexpected token at the beginning of a statement: "
+<< currentToken.toString() << ".\n";
+exit(1);
+}
+
+
+std::unique_ptr<ProgramNode> Parser::parseProgram() {
+auto program = std::make_unique<ProgramNode>();
+
+
+while (currentToken.type != TokenType::EOF_TOKEN) {
+program->statements.push_back(parseStatement());
+}
+return program;
+}
+# /nirvana/prep_ai/../code/src/token.cpp #
+#include "../include/token.h"
+#include <map>
+#include <string>
+
+
+
+static const std::map<TokenType, std::string> tokenTypeNames = {
+{TokenType::SEMICOLON,      "SEMICOLON"},
+{TokenType::DOT,            "DOT"},
+{TokenType::EQUAL,          "EQUAL"},
+{TokenType::LEFT_PAREN,     "LEFT_PAREN"},
+{TokenType::RIGHT_PAREN,    "RIGHT_PAREN"},
+{TokenType::IDENTIFIER,     "IDENTIFIER"},
+{TokenType::STRING_LITERAL, "STRING_LITERAL"},
+{TokenType::ECHO,           "ECHO"},
+{TokenType::EOF_TOKEN,      "EOF_TOKEN"},
+{TokenType::UNKNOWN,        "UNKNOWN"},
+};
+
+
+std::string Token::toString() const {
+
+std::string typeName = tokenTypeNames.count(type) ? tokenTypeNames.at(type) : "UNKNOWN_TYPE";
+std::string str = typeName + " (\"" + lexeme + "\")";
+
+
+if (literal.index() == 0) {
+str += " -> \"" + std::get<std::string>(literal) + "\"";
+} else if (literal.index() == 1) {
+
+str += std::string(" -> ") + std::to_string(std::get<double>(literal));
+} else if (literal.index() == 2) {
+
+str += std::string(" -> ") + (std::get<bool>(literal) ? "true" : "false");
+}
+
+
+return str;
+}
+# /nirvana/prep_ai/../code/src/lexer.cpp #
+#include "../include/lexer.h"
+#include <iostream>
+#include <cctype>
+
+
+Lexer::Lexer(std::string source) : source(std::move(source)), current(0) {}
+
+
+
+char Lexer::peek() {
+if (current >= source.length()) {
+return '\0';
+}
+return source[current];
+}
+
+
+
+char Lexer::advance() {
+if (current < source.length()) {
+return source[current++];
+}
+return '\0';
+}
+
+
+void Lexer::skipWhitespace() {
+while (peek() == ' ' || peek() == '\t' || peek() == '\n' || peek() == '\r') {
+advance();
+}
+}
+
+
+Token Lexer::identifierOrKeyword() {
+std::string lexeme;
+
+
+if (peek() == '$') {
+lexeme += advance();
+}
+
+
+while (std::isalnum(peek()) || peek() == '_') {
+lexeme += advance();
+}
+
+
+if (lexeme == "echo") {
+return Token(TokenType::ECHO, lexeme);
+}
+
+
+
+
+
+return Token(TokenType::IDENTIFIER, lexeme);
+}
+
+
+Token Lexer::string() {
+advance();
+std::string value;
+
+
+while (peek() != '"' && peek() != '\0') {
+value += advance();
+}
+
+
+if (peek() == '\0') {
+std::cerr << "Lexer Error: Unterminated string literal at position " << current << ".\n";
+
+return Token(TokenType::UNKNOWN, "");
+}
+
+advance();
+
+return Token(TokenType::STRING_LITERAL, "\"" + value + "\"", value);
+}
+
+
+Token Lexer::getNextToken() {
+skipWhitespace();
+
+char c = peek();
+
+
+if (c == '\0') {
+return Token(TokenType::EOF_TOKEN, "");
+}
+
+
+switch (c) {
+case ';': advance(); return Token(TokenType::SEMICOLON, ";");
+case '.': advance(); return Token(TokenType::DOT, ".");
+case '=': advance(); return Token(TokenType::EQUAL, "=");
+case '(': advance(); return Token(TokenType::LEFT_PAREN, "(");
+case ')': advance(); return Token(TokenType::RIGHT_PAREN, ")");
+case '"': return string();
+case '$': return identifierOrKeyword();
+default:
+
+
+
+if (std::isalpha(c)) {
+return identifierOrKeyword();
+}
+
+std::cerr << "Lexer Error: Unexpected character '" << c << "' at position " << current << ".\n";
+advance();
+return Token(TokenType::UNKNOWN, std::string(1, c));
+}
+}
+# /nirvana/prep_ai/../code/src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#include <iostream>   
+#include <fstream>    
+#include <sstream>    
+#include <memory>     
+
+
+#include "lexer.h"    
+#include "parser.h"   
+#include "ast.h"      
+#include "token.h"    
+
+
+
+void printAST(const ASTNode* node, int indent = 0);
+
+int main(int argc, char* argv[]) {
+std::cout << "Nirvana MVI starting (Lexer + Parser)...\n";
+
+std::string source_code;
+std::string input_filename = "main.nv"; 
+
+
+
+if (argc > 1) {
+input_filename = argv[1];
+}
+
+std::ifstream file(input_filename);
+if (file.is_open()) {
+std::stringstream buffer;
+buffer << file.rdbuf();
+source_code = buffer.str();
+file.close();
+} else {
+std::cerr << "Error: Could not open file '" << input_filename << "'.\n";
+std::cerr << "Please ensure '" << input_filename << "' exists in the project root,\n";
+std::cerr << "or provide a valid path as a command-line argument.\n";
+return 1;
+}
+
+Lexer lexer(source_code); 
+Parser parser(lexer);     
+
+std::cout << "Parsing file: '" << input_filename << "'...\n";
+
+std::unique_ptr<ProgramNode> ast = parser.parseProgram();
+std::cout << "Parsing finished.\n";
+
+
+
+std::cout << "\n--- Abstract Syntax Tree (AST) ---" << std::endl;
+printAST(ast.get()); 
+std::cout << "----------------------------------\n\n";
+
+
+std::cout << "AST generated. Ready for Evaluation (next step).\n";
+
+return 0; 
+}
+
+
+
+
+void printIndent(int indent) {
+for (int i = 0; i < indent; ++i) {
+std::cout << "  "; 
+}
+}
+
+void printAST(const ASTNode* node, int indent) {
+if (!node) {
+return; 
+}
+
+printIndent(indent); 
+
+
+
+if (auto* prog = dynamic_cast<const ProgramNode*>(node)) {
+std::cout << "ProgramNode (" << prog->statements.size() << " statements)\n";
+for (const auto& stmt : prog->statements) {
+printAST(stmt.get(), indent + 1); 
+}
+} else if (auto* assign = dynamic_cast<const AssignmentStatement*>(node)) {
+std::cout << "AssignmentStatement (Target: " << assign->target->name << ")\n";
+printAST(assign->value.get(), indent + 1); 
+} else if (auto* echo = dynamic_cast<const EchoStatement*>(node)) {
+std::cout << "EchoStatement\n";
+printAST(echo->expression.get(), indent + 1); 
+} else if (auto* strLit = dynamic_cast<const StringLiteralExpr*>(node)) {
+std::cout << "StringLiteralExpr: \"" << strLit->value << "\"\n";
+} else if (auto* var = dynamic_cast<const VariableExpr*>(node)) {
+std::cout << "VariableExpr: " << var->name << "\n";
+} else if (auto* binOp = dynamic_cast<const BinaryOpExpr*>(node)) {
+
+
+std::cout << "BinaryOpExpr (Op: " << Token(binOp->op, "").toString() << ")\n";
+printAST(binOp->left.get(), indent + 1);  
+printAST(binOp->right.get(), indent + 1); 
+} else {
+std::cout << "Unknown AST Node Type\n"; 
+}
+}
+# /nirvana/prep_ai/../code/src/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#include "../include/token.h" 
+#include <map>                 
+#include <string>              
+
+
+
+static const std::map<TokenType, std::string> tokenTypeNames = {
+{TokenType::SEMICOLON,      "SEMICOLON"},
+{TokenType::DOT,            "DOT"},
+{TokenType::EQUAL,          "EQUAL"},
+{TokenType::IDENTIFIER,     "IDENTIFIER"},
+{TokenType::STRING_LITERAL, "STRING_LITERAL"},
+{TokenType::ECHO,           "ECHO"},
+{TokenType::EOF_TOKEN,      "EOF_TOKEN"},
+{TokenType::UNKNOWN,        "UNKNOWN"},
+};
+
+
+std::string Token::toString() const {
+
+std::string typeName = tokenTypeNames.count(type) ? tokenTypeNames.at(type) : "UNKNOWN_TYPE";
+std::string str = typeName + " (\"" + lexeme + "\")"; 
+
+
+if (literal.index() == 0) { 
+str += " -> \"" + std::get<std::string>(literal) + "\"";
+} else if (literal.index() == 1) { 
+
+str += std::string(" -> ") + std::to_string(std::get<double>(literal));
+} else if (literal.index() == 2) { 
+
+str += std::string(" -> ") + (std::get<bool>(literal) ? "true" : "false");
+}
+
+
+return str;
+}
+# /nirvana/prep_ai/../code/src/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "../include/lexer.h"
+#include <iostream>
+#include <cctype>
+
+
+Lexer::Lexer(std::string source) : source(std::move(source)), current(0) {}
+
+
+
+char Lexer::peek() {
+if (current >= source.length()) {
+return '\0';
+}
+return source[current];
+}
+
+
+
+char Lexer::advance() {
+if (current < source.length()) {
+return source[current++];
+}
+return '\0';
+}
+
+
+void Lexer::skipWhitespace() {
+while (peek() == ' ' || peek() == '\t' || peek() == '\n' || peek() == '\r') {
+advance();
+}
+}
+
+
+Token Lexer::identifierOrKeyword() {
+std::string lexeme;
+
+
+if (peek() == '$') {
+lexeme += advance();
+}
+
+
+while (std::isalnum(peek()) || peek() == '_') {
+lexeme += advance();
+}
+
+
+if (lexeme == "echo") {
+return Token(TokenType::ECHO, lexeme);
+}
+
+
+
+
+
+return Token(TokenType::IDENTIFIER, lexeme);
+}
+
+
+Token Lexer::string() {
+advance();
+std::string value;
+
+
+while (peek() != '"' && peek() != '\0') {
+value += advance();
+}
+
+
+if (peek() == '\0') {
+std::cerr << "Lexer Error: Unterminated string literal at position " << current << ".\n";
+
+return Token(TokenType::UNKNOWN, "");
+}
+
+advance();
+
+return Token(TokenType::STRING_LITERAL, "\"" + value + "\"", value);
+}
+
+
+Token Lexer::getNextToken() {
+skipWhitespace();
+
+char c = peek();
+
+
+if (c == '\0') {
+return Token(TokenType::EOF_TOKEN, "");
+}
+
+
+switch (c) {
+case ';': advance(); return Token(TokenType::SEMICOLON, ";");
+case '.': advance(); return Token(TokenType::DOT, ".");
+case '=': advance(); return Token(TokenType::EQUAL, "=");
+case '(': advance(); return Token(TokenType::LEFT_PAREN, "(");
+case ')': advance(); return Token(TokenType::RIGHT_PAREN, ")");
+case '"': return string();
+case '$': return identifierOrKeyword();
+default:
+
+
+
+if (std::isalpha(c)) {
+return identifierOrKeyword();
+}
+
+std::cerr << "Lexer Error: Unexpected character '" << c << "' at position " << current << ".\n";
+advance();
+return Token(TokenType::UNKNOWN, std::string(1, c));
+}
+}
