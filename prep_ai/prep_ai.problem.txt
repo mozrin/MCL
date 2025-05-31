@@ -1,3 +1,4 @@
-I am trying to get () to work in the Parser
+We are trying to get number literals and logic operators working
 
-DO NOT PUT ANY COMMENTS IN MY CODE! THIS IS THE MOST IMPORTANT THING!
+DO NOT PUT ANY COMMENTS IN MY CODE!
+ONLY GIVE ME FILES THAT HAVE CHANGED!

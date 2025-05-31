@@ -1,37 +1,39 @@
-// include/parser.h
+// /nirvana/prep_ai/../code/include/parser.h
 #ifndef PARSER_H
 #define PARSER_H
 
 #include <vector>
 #include <string>
-#include <memory>  // For std::unique_ptr
-#include "lexer.h" // To interact with the Lexer
-#include "ast.h"   // To construct AST nodes
-#include "token.h" // To use Token and TokenType
+#include <memory>
+#include "lexer.h"
+#include "ast.h"
+#include "token.h"
 
 class Parser
 {
 private:
-    Lexer &lexer;       // Reference to our Lexer instance to get tokens from
-    Token currentToken; // The token currently being processed by the parser
+    Lexer &lexer;
+    Token currentToken;
 
-    // Helper functions for token consumption and error handling:
-    void advance();               // Consume the currentToken and load the next token from the lexer.
-    void consume(TokenType type); // Consume currentToken and check if its type matches expected.
-                                  // Throws an error if types don't match.
+    void advance();
+    void consume(TokenType type);
 
-    // Recursive Descent Parsing functions:
-    // These functions correspond to grammar rules and build specific parts of the AST.
-    std::unique_ptr<ASTNode> parseStatement();         // Parses a single statement (e.g., assignment, echo).
-    std::unique_ptr<ASTNode> parseExpression();        // Parses a general expression (e.g., concatenation).
-    std::unique_ptr<ASTNode> parsePrimaryExpression(); // Parses the simplest expressions (literals, variables).
+    std::unique_ptr<ASTNode> parseStatement();
+    std::unique_ptr<ASTNode> parseExpression();
+    std::unique_ptr<ASTNode> parseLogicalOr();
+    std::unique_ptr<ASTNode> parseLogicalAnd();
+    std::unique_ptr<ASTNode> parseEquality();
+    std::unique_ptr<ASTNode> parseComparison();
+    std::unique_ptr<ASTNode> parseTerm();
+    std::unique_ptr<ASTNode> parseFactor();
+    std::unique_ptr<ASTNode> parseUnary();
+    std::unique_ptr<ASTNode> parseConcatenation();
+    std::unique_ptr<ASTNode> parsePrimaryExpression();
 
 public:
-    // Constructor: Takes a reference to the Lexer.
     Parser(Lexer &lexer);
 
-    // Main parsing function: Parses the entire source code and returns the root ProgramNode of the AST.
     std::unique_ptr<ProgramNode> parseProgram();
 };
 
-#endif // PARSER_H
+#endif

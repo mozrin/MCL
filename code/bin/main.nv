@@ -1,3 +1,7 @@
+// main.nv ... everything that the language nirvana can do LOL
+
+echo "--- Initial setup and String Concatenation ---";
+
 $my_variable = "Hello from main.nv!";
 $frequency = " ... most of the time.";
 $part1 = "We are ";
@@ -12,5 +16,55 @@ echo "Nested parentheses " . ("should " . ("work."));
 
 $complex_expression = ($my_variable . " " . "Testing Concatenation") . $frequency;
 echo $complex_expression;
+
+echo "--- Number Literals and Arithmetic Operations ---";
+
+$num1 = 10;
+$num2 = 5.5121212312312312313;
+$num3 = 2;
+$num4 = -3;
+$zero = 0;
+
+echo $num1 + $num2;
+echo $num1 - $num3;
+echo $num1 * $num4;
+echo $num1 / $num3;
+echo $num1 / $num2;
+echo $num1 + $num2 * $num3;
+echo ($num1 + $num2) * $num3;
+
+echo "--- Unary Operators ---";
+echo -$num1;
+echo -($num2 * $num3);
+echo not true;
+echo not false;
+
+echo "--- Comparison Operators ---";
+echo $num1 > $num2;
+echo $num1 >= 10;
+echo $num1 < $num3;
+echo $num1 <= 10;
+echo $num1 == 10;
+echo $num2 != 5;
+echo "hello" == "world";
+echo "hello" != "world";
+echo "hello" == "hello";
+
+echo "--- Logical Operators ---";
+$bool_true = true;
+$bool_false = false;
+
+echo $bool_true and $bool_false;
+echo $bool_true or $bool_false;
+echo ($num1 > 5 and $num2 < 10) or ($num3 == 5);
+echo not ($num1 < 0 or $num2 == 5.5);
+
+echo "--- Type Conversion in Concatenation ---";
+echo "Value of num1: " . $num1;
+echo "Value of bool_true: " . $bool_true;
+echo 123 . " " . 456;
+echo true . " and " . false;
+
+echo "Order of Operators Test: (3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
 
 echo "--- All features tested. ---";

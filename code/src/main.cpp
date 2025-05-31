@@ -1,7 +1,9 @@
+// /nirvana/prep_ai/../code/src/main.cpp
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <exception>
 
 #include "lexer.h"
 #include "parser.h"
@@ -44,8 +46,22 @@ int main(int argc, char *argv[])
 
     std::cout << "Parsing file: '" << input_filename << "'...\n";
 
-    std::unique_ptr<ProgramNode> ast = parser.parseProgram();
-    std::cout << "Parsing finished.\n";
+    std::unique_ptr<ProgramNode> ast;
+    try
+    {
+        ast = parser.parseProgram();
+        std::cout << "Parsing finished.\n";
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << "Parser/Lexer Error during parsing: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "An unexpected error occurred during parsing: " << e.what() << std::endl;
+        return 1;
+    }
 
     std::cout << "\n--- Abstract Syntax Tree (AST) ---" << std::endl;
     printAST(ast.get());
@@ -61,6 +77,11 @@ int main(int argc, char *argv[])
     catch (const std::runtime_error &e)
     {
         std::cerr << "Runtime Error: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "An unexpected error occurred during interpretation: " << e.what() << std::endl;
         return 1;
     }
 
@@ -108,16 +129,28 @@ void printAST(const ASTNode *node, int indent)
     {
         std::cout << "StringLiteralExpr: \"" << strLit->value << "\"\n";
     }
+    else if (auto *numLit = dynamic_cast<const NumberLiteralExpr *>(node))
+    {
+        std::cout << "NumberLiteralExpr: " << numLit->value << "\n";
+    }
+    else if (auto *boolLit = dynamic_cast<const BooleanLiteralExpr *>(node))
+    {
+        std::cout << "BooleanLiteralExpr: " << (boolLit->value ? "true" : "false") << "\n";
+    }
     else if (auto *var = dynamic_cast<const VariableExpr *>(node))
     {
         std::cout << "VariableExpr: " << var->name << "\n";
     }
     else if (auto *binOp = dynamic_cast<const BinaryOpExpr *>(node))
     {
-
-        std::cout << "BinaryOpExpr (Op: " << Token(binOp->op, "").toString() << ")\n";
+        std::cout << "BinaryOpExpr (Op: " << Token(binOp->op, "", 0).toString() << ")\n";
         printAST(binOp->left.get(), indent + 1);
         printAST(binOp->right.get(), indent + 1);
+    }
+    else if (auto *unaryOp = dynamic_cast<const UnaryOpExpr *>(node))
+    {
+        std::cout << "UnaryOpExpr (Op: " << Token(unaryOp->op, "", 0).toString() << ")\n";
+        printAST(unaryOp->right.get(), indent + 1);
     }
     else
     {

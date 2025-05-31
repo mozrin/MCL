@@ -1,3 +1,4 @@
+// /nirvana/prep_ai/../code/include/evaluator.h
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
@@ -18,8 +19,11 @@ private:
     Value evaluateAssignmentStatement(AssignmentStatement *node);
     Value evaluateEchoStatement(EchoStatement *node);
     Value evaluateStringLiteralExpr(StringLiteralExpr *node);
+    Value evaluateNumberLiteralExpr(NumberLiteralExpr *node);
+    Value evaluateBooleanLiteralExpr(BooleanLiteralExpr *node);
     Value evaluateVariableExpr(VariableExpr *node);
     Value evaluateBinaryOpExpr(BinaryOpExpr *node);
+    Value evaluateUnaryOpExpr(UnaryOpExpr *node);
 
 public:
     Evaluator();
