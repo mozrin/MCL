@@ -5,6 +5,7 @@
 
 .devcontainer/**/log/*                  
 .devcontainer/**/data/*
+bin
 
 # TRACK these SPECIFIC project files.
 
