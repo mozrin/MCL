@@ -1,6 +1,5 @@
 // CHANGED FILE: bin/main.nv
 
-
 echo "--- Initial setup and String Concatenation ---";
 
 $my_variable = "Hello from main.nv!";
@@ -133,4 +132,12 @@ echo "abs(-5.5) = " . abs(-5.5);
 $val_to_abs = -123.45;
 echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);
 
-echo "--- All features tested. ---";
+echo "--- Extension Function: sqrt() ---";
+echo "sqrt(9) = " . sqrt(9);
+echo "sqrt(25.0) = " . sqrt(25.0);
+echo "sqrt(2) = " . sqrt(2);
+$val_to_sqrt = 144;
+echo "sqrt(" . $val_to_sqrt . ") = " . sqrt($val_to_sqrt);
+
+
+echo "--- All features tested and extensions loaded. ---";

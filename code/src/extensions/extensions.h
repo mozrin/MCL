@@ -1,8 +1,10 @@
-// CHANGED FILE: src/extensions/extensions.h
 #ifndef ALL_EXTENSIONS_H
 #define ALL_EXTENSIONS_H
 
-#include "../include/evaluator.h"
+#include "../core/evaluator.h"
+
+#include "abs/abs.h"
+#include "sqrt/sqrt.h"
 
 void registerAllExtensions(Evaluator &eval);
 

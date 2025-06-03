@@ -899,7 +899,7 @@ eval.registerNativeFunction("abs", nirvana_abs);
 #ifndef ALL_EXTENSIONS_H
 #define ALL_EXTENSIONS_H
 
-#include "../include/evaluator.h"
+#include "evaluator.h"
 
 void registerAllExtensions(Evaluator &eval);
 
@@ -1094,7 +1094,7 @@ std::cout << "Unknown AST Node Type\n";
 }
 # /nirvana/prep_ai/../code/src/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
-#include "../include/evaluator.h"
+#include "evaluator.h"
 #include <iostream>
 #include <stdexcept>
 #include <cmath>
@@ -1619,7 +1619,7 @@ evaluate(ast.get());
 }
 # /nirvana/prep_ai/../code/src/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
-#include "../include/token.h"
+#include "token.h"
 #include <map>
 #include <string>
 #include <iomanip>
@@ -1697,7 +1697,7 @@ return str;
 }
 # /nirvana/prep_ai/../code/src/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
-#include "../include/lexer.h"
+#include "lexer.h"
 #include <iostream>
 #include <cctype>
 #include <string>

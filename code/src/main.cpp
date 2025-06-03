@@ -5,11 +5,11 @@
 #include <memory>
 #include <exception>
 
-#include "lexer.h"
-#include "parser.h"
-#include "ast.h"
-#include "token.h"
-#include "evaluator.h"
+#include "core/lexer.h"
+#include "core/parser.h"
+#include "core/ast.h"
+#include "core/token.h"
+#include "core/evaluator.h"
 #include "extensions/extensions.h"
 
 void printAST(const ASTNode *node, int indent = 0);

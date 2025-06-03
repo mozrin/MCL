@@ -4,17 +4,7 @@
         {
             "label": "build nirvana",
             "type": "shell",
-            "command": "g++",
-            "args": [
-                "-std=c++17",
-                "-g",
-                "code/src/*.cpp",
-                "code/src/extensions/extensions.cpp",
-                "code/src/extensions/abs/abs.cpp",
-                "-Icode/include",
-                "-o",
-                "code/bin/nirvana"
-            ],
+            "command": "g++ -std=c++17 -g $(find code/src -name '*.cpp') -Icode/include -o code/bin/nirvana",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -1,5 +1,5 @@
 // CHANGED FILE: src/lexer.cpp
-#include "../include/lexer.h"
+#include "lexer.h"
 #include <iostream>
 #include <cctype>
 #include <string>

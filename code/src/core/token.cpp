@@ -1,5 +1,5 @@
 // CHANGED FILE: src/token.cpp
-#include "../include/token.h"
+#include "token.h"
 #include <map>
 #include <string>
 #include <iomanip>
@@ -57,14 +57,8 @@ std::string Token::toString() const
     else if (std::holds_alternative<double>(literal))
     {
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(5) << std::get<double>(literal);
-        std::string s = ss.str();
-        s.erase(s.find_last_not_of('0') + 1, std::string::npos);
-        if (s.back() == '.')
-        {
-            s += '0';
-        }
-        str += " -> " + s;
+        ss << std::setprecision(14) << std::get<double>(literal);
+        str += " -> " + ss.str();
     }
     else if (std::holds_alternative<bool>(literal))
     {
