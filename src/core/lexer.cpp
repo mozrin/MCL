@@ -91,6 +91,15 @@ void Lexer::skipWhitespace()
                 continue;
             }
         }
+        else if (c == '#')
+        {
+            advance();
+            while (peek() != '\n' && peek() != '\0')
+            {
+                advance();
+            }
+            continue;
+        }
         break;
     }
 }
@@ -140,8 +149,7 @@ Token Lexer::string()
             char escaped_char = peek();
             if (escaped_char == '\0')
             {
-                std::cerr << "Lexer Error: Unterminated escape sequence in string literal at line " << startLine << ".\n";
-                return Token(TokenType::UNKNOWN, "", startLine);
+                throw std::runtime_error("Unterminated escape sequence in string literal at line " + std::to_string(startLine) + ".");
             }
 
             switch (escaped_char)
@@ -159,7 +167,6 @@ Token Lexer::string()
                 value += '\t';
                 break;
             default:
-                std::cerr << "Lexer Warning: Unrecognized escape sequence '\\" << escaped_char << "' in string literal at line " << startLine << ".\n";
                 value += escaped_char;
                 break;
             }
@@ -173,8 +180,7 @@ Token Lexer::string()
 
     if (peek() == '\0')
     {
-        std::cerr << "Lexer Error: Unterminated string literal at line " << startLine << ".\n";
-        return Token(TokenType::UNKNOWN, "", startLine);
+        throw std::runtime_error("Unterminated string literal at line " + std::to_string(startLine) + ".");
     }
 
     advance();
@@ -213,13 +219,11 @@ Token Lexer::number()
         }
         catch (const std::out_of_range &)
         {
-            std::cerr << "Lexer Error: Number literal out of range: " << lexeme << " at line " << startLine << ".\n";
-            return Token(TokenType::UNKNOWN, lexeme, startLine);
+            throw std::runtime_error("Number literal out of range: " + lexeme + " at line " + std::to_string(startLine) + ".");
         }
         catch (const std::invalid_argument &)
         {
-            std::cerr << "Lexer Error: Invalid number literal: " << lexeme << " at line " << startLine << ".\n";
-            return Token(TokenType::UNKNOWN, lexeme, startLine);
+            throw std::runtime_error("Invalid number literal: " + lexeme + " at line " + std::to_string(startLine) + ".");
         }
     }
     else
@@ -231,13 +235,11 @@ Token Lexer::number()
         }
         catch (const std::out_of_range &)
         {
-            std::cerr << "Lexer Error: Integer literal out of range: " << lexeme << " at line " << startLine << ".\n";
-            return Token(TokenType::UNKNOWN, lexeme, startLine);
+            throw std::runtime_error("Integer literal out of range: " + lexeme + " at line " + std::to_string(startLine) + ".");
         }
         catch (const std::invalid_argument &)
         {
-            std::cerr << "Lexer Error: Invalid integer literal: " << lexeme << " at line " << startLine << ".\n";
-            return Token(TokenType::UNKNOWN, lexeme, startLine);
+            throw std::runtime_error("Invalid integer literal: " + lexeme + " at line " + std::to_string(startLine) + ".");
         }
     }
 }
@@ -337,8 +339,6 @@ Token Lexer::getNextToken()
             return number();
         }
 
-        std::cerr << "Lexer Error: Unexpected character '" << c << "' at line " << startLine << ".\n";
-        advance();
-        return Token(TokenType::UNKNOWN, std::string(1, c), startLine);
+        throw std::runtime_error("Unexpected character '" + std::string(1, c) + "' at line " + std::to_string(startLine) + ".");
     }
 }

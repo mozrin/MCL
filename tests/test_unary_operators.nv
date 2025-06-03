@@ -1,4 +1,3 @@
-/nirvana/prep_ai/../code/bin/test_unary_operators.nv
 echo "--- Unary Operators on Different Types ---";
 $integer1 = 10;
 $double1 = 10.5;

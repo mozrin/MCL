@@ -1,4 +1,3 @@
-/nirvana/prep_ai/../code/bin/test_booleans_logic.nv
 echo "--- Boolean Type and Logical Operations ---";
 $bool_true = true;
 $bool_false = false;

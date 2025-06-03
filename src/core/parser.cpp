@@ -1,6 +1,8 @@
+// /nirvana/.prep_ai/../src/core/parser.cpp
 #include "parser.h"
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 Parser::Parser(Lexer &lexer) : lexer(lexer), currentToken(lexer.getNextToken())
 {
@@ -12,8 +14,7 @@ void Parser::advance()
 
     if (currentToken.type == TokenType::UNKNOWN)
     {
-        std::cerr << "Parser error: Lexer returned UNKNOWN token: \"" << currentToken.lexeme << "\" at line " << currentToken.line << ". Aborting.\n";
-        exit(1);
+        throw std::runtime_error("Lexer returned UNKNOWN token: \"" + currentToken.lexeme + "\" at line " + std::to_string(currentToken.line) + ".");
     }
 }
 
@@ -25,9 +26,7 @@ void Parser::consume(TokenType type)
     }
     else
     {
-        std::cerr << "Parser error: Expected token type " << Token(type, "", 0).toString()
-                  << " but found " << currentToken.toString() << ".\n";
-        exit(1);
+        throw std::runtime_error("Expected token type " + Token(type, "", 0).toString() + " but found " + currentToken.toString() + ".");
     }
 }
 
@@ -79,9 +78,8 @@ std::unique_ptr<ASTNode> Parser::parsePrimaryExpression()
         return expr;
     }
 
-    std::cerr << "Parser error at line " << currentToken.line << ": Expected a primary expression (literal, variable, or parenthesized expression), but got "
-              << currentToken.toString() << ".\n";
-    exit(1);
+    throw std::runtime_error("Expected a primary expression (literal, variable, or parenthesized expression), but got " +
+                             currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
 }
 
 std::unique_ptr<ASTNode> Parser::parseCall()
@@ -250,9 +248,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement()
             declared_type_token != TokenType::NUMBER_KEYWORD &&
             declared_type_token != TokenType::BOOLEAN_KEYWORD)
         {
-            std::cerr << "Parser error at line " << currentToken.line << ": Expected a type keyword (string, integer, number, boolean) after 'public', but got "
-                      << currentToken.toString() << ".\n";
-            exit(1);
+            throw std::runtime_error("Expected a type keyword (string, integer, number, boolean) after 'public', but got " +
+                                     currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
         }
         consume(declared_type_token);
 
@@ -279,9 +276,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement()
         return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
     }
 
-    std::cerr << "Parser error at line " << currentToken.line << ": Unexpected token at the beginning of a statement: "
-              << currentToken.toString() << ".\n";
-    exit(1);
+    throw std::runtime_error("Unexpected token at the beginning of a statement: " +
+                             currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
 }
 
 std::unique_ptr<ProgramNode> Parser::parseProgram()

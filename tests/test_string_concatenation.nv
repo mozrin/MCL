@@ -1,4 +1,3 @@
-/nirvana/prep_ai/../code/bin/test_string_concat.nv
 echo "--- Initial setup and String Concatenation ---";
 
 $my_variable = "Hello from main.nv!";

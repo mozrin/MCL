@@ -1,4 +1,3 @@
-/nirvana/prep_ai/../code/bin/test_numbers_arithmetic.nv
 echo "--- Number Types: Integer (long long) and Number (double) ---";
 
 $integer1 = 10;
