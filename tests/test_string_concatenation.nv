@@ -1,0 +1,17 @@
+/nirvana/prep_ai/../code/bin/test_string_concat.nv
+echo "--- Initial setup and String Concatenation ---";
+
+$my_variable = "Hello from main.nv!";
+$frequency = " ... most of the time.";
+$part1 = "We are ";
+$part2 = "cooool!";
+
+echo $my_variable;
+echo "Lexer, Parser, and Evaluator are working.";
+echo $part1 . $part2 . $frequency;
+echo ("This is a grouped " . "string literal concatenation.");
+echo ($part1 . $part2) . " very " . "much!";
+echo "Nested parentheses " . ("should " . ("work."));
+
+$complex_expression = ($my_variable . " " . "Testing Concatenation") . $frequency;
+echo $complex_expression;

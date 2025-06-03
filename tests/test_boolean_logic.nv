@@ -1,0 +1,21 @@
+/nirvana/prep_ai/../code/bin/test_booleans_logic.nv
+echo "--- Boolean Type and Logical Operations ---";
+$bool_true = true;
+$bool_false = false;
+
+echo "bool_true: " . $bool_true;
+echo "bool_false: " . $bool_false;
+
+echo "true and false = " . ($bool_true and $bool_false);
+echo "true or false = " . ($bool_true or $bool_false);
+echo "not true = " . (not $bool_true);
+echo "not false = " . (not $bool_false);
+
+echo "--- Logical Operations with Numbers (0/0.0 is false, non-zero is true) ---";
+echo "10 and 0 = " . (10 and 0);
+echo "0.0 and 5.5 = " . (0.0 and 5.5);
+echo "10 and 5.5 = " . (10 and 5.5);
+echo "not 10 = " . (not 10);
+echo "not 0 = " . (not 0);
+echo "not 5.5 = " . (not 5.5);
+echo "not 0.0 = " . (not 0.0);

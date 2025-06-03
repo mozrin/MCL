@@ -1,0 +1,8 @@
+/nirvana/prep_ai/../code/bin/test_extension_abs.nv
+echo "--- Extension Function: abs() ---";
+echo "abs(10) = " . abs(10);
+echo "abs(-10) = " . abs(-10);
+echo "abs(5.5) = " . abs(5.5);
+echo "abs(-5.5) = " . abs(-5.5);
+$val_to_abs = -123.45;
+echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);

@@ -1,0 +1,12 @@
+/nirvana/prep_ai/../code/bin/test_type_conversion_concat.nv
+echo "--- Type Conversion in Concatenation ---";
+$integer1 = 10;
+$double1 = 10.5;
+$bool_true = true;
+$bool_false = false;
+echo "Value of integer1: " . $integer1;
+echo "Value of double1: " . $double1;
+echo "Value of bool_true: " . $bool_true;
+echo "123 (int) . \" \" . 456 (int) = " . (123 . " " . 456);
+echo "true (bool) . \" and \" . false (bool) = " . ($bool_true . " and " . $bool_false);
+echo "12.34 (double) . \" is a double\" = " . (12.34 . " is a double");

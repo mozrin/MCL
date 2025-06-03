@@ -1,0 +1,40 @@
+/nirvana/prep_ai/../code/bin/test_numbers_arithmetic.nv
+echo "--- Number Types: Integer (long long) and Number (double) ---";
+
+$integer1 = 10;
+$integer2 = 3;
+$neg_integer = -5;
+
+$double1 = 10.5;
+$double2 = 2.5;
+$long_decimal = 5.123456789;
+$small_decimal = 0.0001;
+
+echo "Integer1: " . $integer1;
+echo "Double1: " . $double1;
+echo "Long Decimal: " . $long_decimal;
+
+echo "--- Integer Arithmetic Operations ---";
+echo "10 + 3 = " . ($integer1 + $integer2);
+echo "10 - 3 = " . ($integer1 - $integer2);
+echo "10 * -5 = " . ($integer1 * $neg_integer);
+echo "10 / 3 (integer division) = " . ($integer1 / $integer2);
+echo "-5 / 3 (integer division) = " . ($neg_integer / $integer2);
+
+echo "--- Double Arithmetic Operations ---";
+echo "10.5 + 2.5 = " . ($double1 + $double2);
+echo "10.5 - 2.5 = " . ($double1 - $double2);
+echo "10.5 * 5.123456789 = " . ($double1 * $long_decimal);
+echo "10.5 / 2.5 = " . ($double1 / $double2);
+echo "5.123456789 / 0.0001 = " . ($long_decimal / $small_decimal);
+
+echo "--- Mixed Type Arithmetic (promotes to double) ---";
+echo "10 (int) + 2.5 (double) = " . ($integer1 + $double2);
+echo "10.5 (double) - 3 (int) = " . ($double1 - $integer2);
+echo "10 (int) * 5.123456789 (double) = " . ($integer1 * $long_decimal);
+echo "10.5 (double) / 3 (int) = " . ($double1 / $integer2);
+
+echo "--- Order of Operations Mixed Types ---";
+echo "(10 + 2.5) * 3 = " . (($integer1 + $double2) * $integer2);
+echo "10 + 2.5 * 3 = " . ($integer1 + $double2 * $integer2);
+echo "10 / 3.0 = " . (10 / 3.0);

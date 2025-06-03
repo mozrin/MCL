@@ -1,0 +1,36 @@
+/nirvana/prep_ai/../code/bin/test_comparisons.nv
+echo "--- Comparison Operators (Type promotion for numbers) ---";
+$integer1 = 10;
+$double1 = 10.5;
+$long_decimal = 5.123456789;
+$bool_true = true;
+$bool_false = false;
+
+echo "10 > 5.5 = " . ($integer1 > $long_decimal);
+echo "10 >= 10 = " . ($integer1 >= 10);
+echo "10.5 < 10 = " . ($double1 < $integer1);
+echo "10.5 <= 10.5 = " . ($double1 <= 10.5);
+
+echo "10 == 10 = " . ($integer1 == 10);
+echo "10.0 == 10.0 = " . (10.0 == 10.0);
+echo "10 == 10.0 (int vs double) = " . ($integer1 == 10.0);
+echo "10.0 != 5.0 = " . ($double1 != 5.0);
+echo "10 != 5 (int) = " . ($integer1 != 5);
+
+echo "true == 1 = " . ($bool_true == 1);
+echo "false == 0 = " . ($bool_false == 0);
+echo "true != 0 = " . ($bool_true != 0);
+echo "false != 1 = " . ($bool_false != 1);
+echo "true == 1.0 = " . ($bool_true == 1.0);
+echo "false == 0.0 = " . ($bool_false == 0.0);
+
+echo "--- String Comparisons ---";
+echo "\"hello\" == \"world\" = " . ("hello" == "world");
+echo "\"hello\" != \"world\" = " . ("hello" != "world");
+echo "\"hello\" == \"hello\" = " . ("hello" == "hello");
+
+echo "--- Mixed Logical and Comparison Operators ---";
+$integer2 = 3;
+$double2 = 2.5;
+echo "((10 > 5) and (2.5 < 10.0)) or (3 == 5) = " . (($integer1 > 5 and $double2 < 10.0) or ($integer2 == 5));
+echo "not ((10 < 0) or (5.123 == 5.123)) = " . (not ($integer1 < 0 or $long_decimal == 5.123));

@@ -1,0 +1,174 @@
+// /nirvana/prep_ai/../code/bin/main.nv
+echo "--- Initial setup and String Concatenation ---";
+
+$my_variable = "Hello from main.nv!";
+$frequency = " ... most of the time.";
+$part1 = "We are ";
+$part2 = "cooool!";
+
+echo $my_variable;
+echo "Lexer, Parser, and Evaluator are working.";
+echo $part1 . $part2 . $frequency;
+echo ("This is a grouped " . "string literal concatenation.");
+echo ($part1 . $part2) . " very " . "much!";
+echo "Nested parentheses " . ("should " . ("work."));
+
+$complex_expression = ($my_variable . " " . "Testing Concatenation") . $frequency;
+echo $complex_expression;
+
+echo "--- Number Types: Integer (long long) and Number (double) ---";
+
+$integer1 = 10;
+$integer2 = 3;
+$neg_integer = -5;
+
+$double1 = 10.5;
+$double2 = 2.5;
+$long_decimal = 5.123456789;
+$small_decimal = 0.0001;
+
+echo "Integer1: " . $integer1;
+echo "Double1: " . $double1;
+echo "Long Decimal: " . $long_decimal;
+
+echo "--- Integer Arithmetic Operations ---";
+echo "10 + 3 = " . ($integer1 + $integer2);
+echo "10 - 3 = " . ($integer1 - $integer2);
+echo "10 * -5 = " . ($integer1 * $neg_integer);
+echo "10 / 3 (integer division) = " . ($integer1 / $integer2);
+echo "-5 / 3 (integer division) = " . ($neg_integer / $integer2);
+
+echo "--- Double Arithmetic Operations ---";
+echo "10.5 + 2.5 = " . ($double1 + $double2);
+echo "10.5 - 2.5 = " . ($double1 - $double2);
+echo "10.5 * 5.123456789 = " . ($double1 * $long_decimal);
+echo "10.5 / 2.5 = " . ($double1 / $double2);
+echo "5.123456789 / 0.0001 = " . ($long_decimal / $small_decimal);
+
+echo "--- Mixed Type Arithmetic (promotes to double) ---";
+echo "10 (int) + 2.5 (double) = " . ($integer1 + $double2);
+echo "10.5 (double) - 3 (int) = " . ($double1 - $integer2);
+echo "10 (int) * 5.123456789 (double) = " . ($integer1 * $long_decimal);
+echo "10.5 (double) / 3 (int) = " . ($double1 / $integer2);
+
+echo "--- Order of Operations Mixed Types ---";
+echo "(10 + 2.5) * 3 = " . (($integer1 + $double2) * $integer2);
+echo "10 + 2.5 * 3 = " . ($integer1 + $double2 * $integer2);
+echo "10 / 3.0 = " . (10 / 3.0); 
+
+echo "--- Boolean Type and Logical Operations ---";
+$bool_true = true;
+$bool_false = false;
+
+echo "bool_true: " . $bool_true;
+echo "bool_false: " . $bool_false;
+
+echo "true and false = " . ($bool_true and $bool_false);
+echo "true or false = " . ($bool_true or $bool_false);
+echo "not true = " . (not $bool_true);
+echo "not false = " . (not $bool_false);
+
+echo "--- Logical Operations with Numbers (0/0.0 is false, non-zero is true) ---";
+echo "10 and 0 = " . (10 and 0);
+echo "0.0 and 5.5 = " . (0.0 and 5.5);
+echo "10 and 5.5 = " . (10 and 5.5);
+echo "not 10 = " . (not 10);
+echo "not 0 = " . (not 0);
+echo "not 5.5 = " . (not 5.5);
+echo "not 0.0 = " . (not 0.0);
+
+echo "--- Unary Operators on Different Types ---";
+echo "-integer1 = " . -$integer1;
+echo "-double1 = " . -$double1;
+echo "-bool_true = " . -$bool_true; 
+echo "-bool_false = " . -$bool_false; 
+
+echo "--- Comparison Operators (Type promotion for numbers) ---";
+echo "10 > 5.5 = " . ($integer1 > $long_decimal);
+echo "10 >= 10 = " . ($integer1 >= 10);
+echo "10.5 < 10 = " . ($double1 < $integer1);
+echo "10.5 <= 10.5 = " . ($double1 <= 10.5);
+
+echo "10 == 10 = " . ($integer1 == 10);
+echo "10.0 == 10.0 = " . (10.0 == 10.0);
+echo "10 == 10.0 (int vs double) = " . ($integer1 == 10.0);
+echo "10.0 != 5.0 = " . ($double1 != 5.0);
+echo "10 != 5 (int) = " . ($integer1 != 5);
+
+echo "true == 1 = " . ($bool_true == 1);
+echo "false == 0 = " . ($bool_false == 0);
+echo "true != 0 = " . ($bool_true != 0);
+echo "false != 1 = " . ($bool_false != 1);
+echo "true == 1.0 = " . ($bool_true == 1.0);
+echo "false == 0.0 = " . ($bool_false == 0.0);
+
+echo "--- String Comparisons ---";
+echo "\"hello\" == \"world\" = " . ("hello" == "world");
+echo "\"hello\" != \"world\" = " . ("hello" != "world");
+echo "\"hello\" == \"hello\" = " . ("hello" == "hello");
+
+echo "--- Mixed Logical and Comparison Operators ---";
+echo "((10 > 5) and (2.5 < 10.0)) or (3 == 5) = " . (($integer1 > 5 and $double2 < 10.0) or ($integer2 == 5));
+echo "not ((10 < 0) or (5.123 == 5.123)) = " . (not ($integer1 < 0 or $long_decimal == 5.123));
+
+echo "--- Type Conversion in Concatenation ---";
+echo "Value of integer1: " . $integer1;
+echo "Value of double1: " . $double1;
+echo "Value of bool_true: " . $bool_true;
+echo "123 (int) . \" \" . 456 (int) = " . (123 . " " . 456);
+echo "true (bool) . \" and \" . false (bool) = " . ($bool_true . " and " . $bool_false);
+echo "12.34 (double) . \" is a double\" = " . (12.34 . " is a double");
+
+echo "--- Complex Expression Order of Operations ---";
+echo "(3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
+echo "(3.0*3)/3-1*4.0+2*2.0 = " . (3.0*3)/3-1*4.0+2*2.0;
+
+echo "--- Extension Function: abs() ---";
+echo "abs(10) = " . abs(10);
+echo "abs(-10) = " . abs(-10);
+echo "abs(5.5) = " . abs(5.5);
+echo "abs(-5.5) = " . abs(-5.5);
+$val_to_abs = -123.45;
+echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);
+
+echo "--- Extension Function: sqrt() ---";
+echo "sqrt(9) = " . sqrt(9);
+echo "sqrt(25.0) = " . sqrt(25.0);
+echo "sqrt(2) = " . sqrt(2);
+$val_to_sqrt = 144;
+echo "sqrt(" . $val_to_sqrt . ") = " . sqrt($val_to_sqrt);
+
+echo "--- Extension Function: uppercase() ---";
+$test_string_1 = "hello world";
+$test_string_2 = "this is a Test String with numb3rs and symbols!@#";
+$test_string_4 = "already UPpER and lOwER";
+
+echo "Default (MCL_UPPERCASE_EVERYTHING):";
+echo "  uppercase(\"" . $test_string_1 . "\") = " . uppercase($test_string_1);
+echo "  uppercase(\"" . $test_string_2 . "\") = " . uppercase($test_string_2);
+
+echo "MCL_UPPERCASE_EVERYTHING:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_1, MCL_UPPERCASE_EVERYTHING);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_2, MCL_UPPERCASE_EVERYTHING);
+
+echo "MCL_UPPERCASE_TITLE:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TITLE);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TITLE);
+echo "  uppercase(\"another-example_string\", MCL_UPPERCASE_TITLE) = " . uppercase("another-example_string", MCL_UPPERCASE_TITLE);
+
+echo "MCL_UPPERCASE_FIRST:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_1, MCL_UPPERCASE_FIRST);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_2, MCL_UPPERCASE_FIRST);
+echo "  uppercase(\" already capitalized\", MCL_UPPERCASE_FIRST) = " . uppercase(" already capitalized", MCL_UPPERCASE_FIRST);
+
+echo "MCL_UPPERCASE_ALTERNATING:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_1, MCL_UPPERCASE_ALTERNATING);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_2, MCL_UPPERCASE_ALTERNATING);
+echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_4, MCL_UPPERCASE_ALTERNATING);
+
+echo "MCL_UPPERCASE_TOGGLE:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TOGGLE);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TOGGLE);
+echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_4, MCL_UPPERCASE_TOGGLE);
+
+echo "--- All features tested and extensions loaded. ---";

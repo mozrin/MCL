@@ -4,7 +4,7 @@
         {
             "label": "build nirvana",
             "type": "shell",
-            "command": "g++ -std=c++17 -g $(find code/src -name '*.cpp') -Icode/include -o code/bin/nirvana",
+            "command": "g++ -std=c++17 -g $(find src -name '*.cpp') -Isrc/core -Isrc/extensions -Isrc/extensions/abs -Isrc/extensions/sqrt -Isrc/extensions/uppercase -o bin/nirvana",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -20,9 +20,9 @@
         {
             "label": "run nirvana",
             "type": "shell",
-            "command": "./code/bin/nirvana",
+            "command": "./bin/nirvana",
             "args": [
-                "code/bin/main.nv"
+                "bin/*.nv"
             ],
             "group": "test",
             "presentation": {

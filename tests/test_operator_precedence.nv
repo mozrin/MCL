@@ -1,0 +1,4 @@
+/nirvana/prep_ai/../code/bin/test_operator_precedence.nv
+echo "--- Complex Expression Order of Operations ---";
+echo "(3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
+echo "(3.0*3)/3-1*4.0+2*2.0 = " . (3.0*3)/3-1*4.0+2*2.0;

@@ -1,3 +1,0 @@
-I am writing a interpreted language in cpp ... this is the code so far.
-Do not put comments in my code.
-Do not output files that have not changed.

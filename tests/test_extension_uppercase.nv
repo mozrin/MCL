@@ -1,0 +1,32 @@
+echo "--- Function: uppercase() ---";
+$test_string_1 = "hello world";
+$test_string_2 = "this is a Test String with numb3rs and symbols!@#";
+$test_string_4 = "already UPpER and lOwER";
+
+echo "Default (MCL_UPPERCASE_EVERYTHING):";
+echo "  uppercase(\"" . $test_string_1 . "\") = " . uppercase($test_string_1);
+echo "  uppercase(\"" . $test_string_2 . "\") = " . uppercase($test_string_2);
+
+echo "MCL_UPPERCASE_EVERYTHING:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_1, MCL_UPPERCASE_EVERYTHING);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_2, MCL_UPPERCASE_EVERYTHING);
+
+echo "MCL_UPPERCASE_TITLE:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TITLE);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TITLE);
+echo "  uppercase(\"another-example_string\", MCL_UPPERCASE_TITLE) = " . uppercase("another-example_string", MCL_UPPERCASE_TITLE);
+
+echo "MCL_UPPERCASE_FIRST:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_1, MCL_UPPERCASE_FIRST);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_2, MCL_UPPERCASE_FIRST);
+echo "  uppercase(\" already capitalized\", MCL_UPPERCASE_FIRST) = " . uppercase(" already capitalized", MCL_UPPERCASE_FIRST);
+
+echo "MCL_UPPERCASE_ALTERNATING:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_1, MCL_UPPERCASE_ALTERNATING);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_2, MCL_UPPERCASE_ALTERNATING);
+echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_4, MCL_UPPERCASE_ALTERNATING);
+
+echo "MCL_UPPERCASE_TOGGLE:";
+echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TOGGLE);
+echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TOGGLE);
+echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_4, MCL_UPPERCASE_TOGGLE);
