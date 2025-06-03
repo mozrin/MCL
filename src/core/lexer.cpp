@@ -327,6 +327,9 @@ Token Lexer::getNextToken()
     case ',':
         advance();
         return Token(TokenType::COMMA, ",", startLine);
+    case '|':
+        advance();
+        return Token(TokenType::PIPE, "|", startLine);
     case '$':
         return identifierOrKeyword();
     default:

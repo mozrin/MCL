@@ -1,4 +1,3 @@
-
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -22,6 +21,7 @@ private:
     std::unique_ptr<ASTNode> parseExpression();
     std::unique_ptr<ASTNode> parseLogicalOr();
     std::unique_ptr<ASTNode> parseLogicalAnd();
+    std::unique_ptr<ASTNode> parseBitwiseOr();
     std::unique_ptr<ASTNode> parseEquality();
     std::unique_ptr<ASTNode> parseComparison();
     std::unique_ptr<ASTNode> parseTerm();

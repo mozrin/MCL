@@ -4,7 +4,7 @@
         {
             "label": "build nirvana",
             "type": "shell",
-            "command": "g++ -std=c++17 -g $(find src -name '*.cpp') -Isrc/core -Isrc/extensions -Isrc/extensions/abs -Isrc/extensions/sqrt -Isrc/extensions/uppercase -o bin/nirvana",
+            "command": "g++ -std=c++17 -g $(find src -name '*.cpp') -Isrc/core -Isrc/extensions -Isrc/extensions/abs -Isrc/extensions/sqrt -Isrc/extensions/uppercase -Isrc/extensions/trim -o bin/nirvana",
             "group": {
                 "kind": "build",
                 "isDefault": true

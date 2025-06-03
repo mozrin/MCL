@@ -523,6 +523,59 @@ return false; }, left_val, right_val);
 
         return performBooleanBinaryOp(left_val, right_val, node->op);
     }
+    else if (node->op == TokenType::PIPE)
+    {
+        long long left_int_val;
+        long long right_int_val;
+
+        if (std::holds_alternative<long long>(left_val))
+        {
+            left_int_val = std::get<long long>(left_val);
+        }
+        else if (std::holds_alternative<double>(left_val))
+        {
+            double d_val = std::get<double>(left_val);
+            long long ll_val = static_cast<long long>(d_val);
+            if (d_val != static_cast<double>(ll_val))
+            {
+                throw std::runtime_error("Type error: Bitwise OR operator '|' requires integer operands. Left operand is a non-integer number.");
+            }
+            left_int_val = ll_val;
+        }
+        else if (std::holds_alternative<bool>(left_val))
+        {
+            left_int_val = std::get<bool>(left_val) ? 1LL : 0LL;
+        }
+        else
+        {
+            throw std::runtime_error("Type error: Bitwise OR operator '|' can only be applied to integer or number (convertible to integer) operands. Left operand is of invalid type.");
+        }
+
+        if (std::holds_alternative<long long>(right_val))
+        {
+            right_int_val = std::get<long long>(right_val);
+        }
+        else if (std::holds_alternative<double>(right_val))
+        {
+            double d_val = std::get<double>(right_val);
+            long long ll_val = static_cast<long long>(d_val);
+            if (d_val != static_cast<double>(ll_val))
+            {
+                throw std::runtime_error("Type error: Bitwise OR operator '|' requires integer operands. Right operand is a non-integer number.");
+            }
+            right_int_val = ll_val;
+        }
+        else if (std::holds_alternative<bool>(right_val))
+        {
+            right_int_val = std::get<bool>(right_val) ? 1LL : 0LL;
+        }
+        else
+        {
+            throw std::runtime_error("Type error: Bitwise OR operator '|' can only be applied to integer or number (convertible to integer) operands. Right operand is of invalid type.");
+        }
+
+        return left_int_val | right_int_val;
+    }
 
     throw std::runtime_error("Unsupported binary operator.");
 }

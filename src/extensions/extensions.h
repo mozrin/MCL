@@ -6,6 +6,7 @@
 #include "abs/abs.h"
 #include "sqrt/sqrt.h"
 #include "uppercase/uppercase.h"
+#include "trim/trim.h"
 
 void registerAllExtensions(Evaluator &eval);
 

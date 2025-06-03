@@ -46,6 +46,7 @@ enum class TokenType
     BOOLEAN_KEYWORD,
 
     COMMA,
+    PIPE,
 
     EOF_TOKEN,
     UNKNOWN,

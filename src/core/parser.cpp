@@ -1,4 +1,3 @@
-// /nirvana/.prep_ai/../src/core/parser.cpp
 #include "parser.h"
 #include <iostream>
 #include <string>
@@ -182,15 +181,29 @@ std::unique_ptr<ASTNode> Parser::parseEquality()
     return left;
 }
 
-std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
+std::unique_ptr<ASTNode> Parser::parseBitwiseOr()
 {
     std::unique_ptr<ASTNode> left = parseEquality();
+
+    while (currentToken.type == TokenType::PIPE)
+    {
+        TokenType op = currentToken.type;
+        advance();
+        std::unique_ptr<ASTNode> right = parseEquality();
+        left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
+{
+    std::unique_ptr<ASTNode> left = parseBitwiseOr();
 
     while (currentToken.type == TokenType::AND)
     {
         TokenType op = currentToken.type;
         advance();
-        std::unique_ptr<ASTNode> right = parseEquality();
+        std::unique_ptr<ASTNode> right = parseBitwiseOr();
         left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
     }
     return left;

@@ -73,6 +73,13 @@ int process_single_file(const std::string &filename)
     evaluator.registerConstant("MCL_UPPERCASE_ALTERNATING", (long long)MCL_UPPERCASE_ALTERNATING);
     evaluator.registerConstant("MCL_UPPERCASE_TOGGLE", (long long)MCL_UPPERCASE_TOGGLE);
 
+    evaluator.registerConstant("MCL_TRIM_LEFT", (long long)MCL_TRIM_LEFT);
+    evaluator.registerConstant("MCL_TRIM_RIGHT", (long long)MCL_TRIM_RIGHT);
+    evaluator.registerConstant("MCL_TRIM_MIDDLE", (long long)MCL_TRIM_MIDDLE);
+    evaluator.registerConstant("MCL_TRIM_ENDS", (long long)MCL_TRIM_ENDS);
+    evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
+    evaluator.registerConstant("MCL_TRIM_DEFAULT_CHARS", MCL_TRIM_DEFAULT_CHARS);
+
     try
     {
         evaluator.interpret(std::move(ast));

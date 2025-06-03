@@ -36,6 +36,7 @@ static const std::map<TokenType, std::string> tokenTypeNames = {
     {TokenType::NUMBER_KEYWORD, "NUMBER_KEYWORD"},
     {TokenType::BOOLEAN_KEYWORD, "BOOLEAN_KEYWORD"},
     {TokenType::COMMA, "COMMA"},
+    {TokenType::PIPE, "PIPE"},
     {TokenType::EOF_TOKEN, "EOF_TOKEN"},
     {TokenType::UNKNOWN, "UNKNOWN"},
 };
