@@ -9,22 +9,22 @@
 class Lexer
 {
 private:
-    std::string source;
-    int current;
-    int line;
+std::string source;
+int current;
+int line;
 
-    char peek();
-    char advance();
-    char peekNext();
-    void skipWhitespace();
+char peek();
+char advance();
+char peekNext();
+void skipWhitespace();
 
-    Token identifierOrKeyword();
-    Token string();
-    Token number();
+Token identifierOrKeyword();
+Token string();
+Token number();
 
 public:
-    Lexer(std::string source);
-    Token getNextToken();
+Lexer(std::string source);
+Token getNextToken();
 };
 
 #endif
