@@ -2,18 +2,13 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-I want to define to types and stick with them ...
+We are going to create the ability to add functions. Here is what I want ...
 
-string = self explanitory
-number = anything that is numerical .. stored as a 64 bit value.
+in the src/ folder I am going to create a folder called extensions/
 
-the plan is that every other kind of numerical value is a wrapper around number.
+I want to add a file called random.cpp and if necessary random.h in that folder and then have the main program read everything in the extensions folder and integrate them into the language.
 
-integer is a type of number
-decimal(x,y) is a type of number where the precision is x to the left and y to the right.
-boolean is a 0 or non-zero number (in memory) - the user see true/false
-
-what are your thoughts?
+I like the idea of each file in the extensiosn folder being a function in the language. Sound okay?
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
@@ -23,8 +18,10 @@ ONLY GIVE ME FILES THAT HAVE CHANGED!
 ├── bin/
 ├── include/
 └── src/
+    └── extensions/
+        └── abs/
 
-4 directories, 0 files
+6 directories, 0 files
 
 --- Baseline File Contents ---
 
@@ -68,6 +65,7 @@ Token getNextToken();
 #include <string>
 #include <vector>
 #include "token.h"
+#include "value.h"
 
 struct ASTNode
 {
@@ -117,13 +115,33 @@ UnaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> right_expr)
 : op(op_type), right(std::move(right_expr)) {}
 };
 
+struct CallExpr : public ASTNode
+{
+std::unique_ptr<ASTNode> callee;
+std::vector<std::unique_ptr<ASTNode>> arguments;
+
+CallExpr(std::unique_ptr<ASTNode> callee_expr, std::vector<std::unique_ptr<ASTNode>> args)
+: callee(std::move(callee_expr)), arguments(std::move(args)) {}
+};
+
 struct AssignmentStatement : public ASTNode
 {
 std::unique_ptr<VariableExpr> target;
 std::unique_ptr<ASTNode> value;
+bool is_declaration;
 
-AssignmentStatement(std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> assigned_value)
-: target(std::move(target_var)), value(std::move(assigned_value)) {}
+AssignmentStatement(std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> assigned_value, bool is_decl = false)
+: target(std::move(target_var)), value(std::move(assigned_value)), is_declaration(is_decl) {}
+};
+
+struct DeclarationStatement : public ASTNode
+{
+TokenType declared_type;
+std::unique_ptr<VariableExpr> target;
+std::unique_ptr<ASTNode> value;
+
+DeclarationStatement(TokenType type, std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> initial_value)
+: declared_type(type), target(std::move(target_var)), value(std::move(initial_value)) {}
 };
 
 struct EchoStatement : public ASTNode
@@ -150,14 +168,38 @@ ProgramNode() = default;
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <cmath>
 
-using Value = std::variant<std::string, double, bool, std::monostate>;
+
+enum class DeclaredType
+{
+ANY, 
+STRING,
+INTEGER,
+NUMBER, 
+BOOLEAN
+};
+
+
+inline DeclaredType valueTypeToDeclaredType(const std::variant<std::string, long long, double, bool, std::monostate>& val) {
+if (std::holds_alternative<std::string>(val)) return DeclaredType::STRING;
+if (std::holds_alternative<long long>(val)) return DeclaredType::INTEGER;
+if (std::holds_alternative<double>(val)) return DeclaredType::NUMBER;
+if (std::holds_alternative<bool>(val)) return DeclaredType::BOOLEAN;
+return DeclaredType::ANY; 
+}
+
+using Value = std::variant<std::string, long long, double, bool, std::monostate>;
 
 inline std::ostream &operator<<(std::ostream &os, const Value &val)
 {
 if (std::holds_alternative<std::string>(val))
 {
 os << std::get<std::string>(val);
+}
+else if (std::holds_alternative<long long>(val))
+{
+os << std::get<long long>(val);
 }
 else if (std::holds_alternative<double>(val))
 {
@@ -191,6 +233,9 @@ return os;
 #include <string>
 #include <variant>
 #include <utility>
+#include <cstdint>
+
+#include "value.h"
 
 enum class TokenType
 {
@@ -223,18 +268,43 @@ AND,
 OR,
 NOT,
 
+PUBLIC,
+STRING_KEYWORD,
+INTEGER_KEYWORD,
+NUMBER_KEYWORD,
+BOOLEAN_KEYWORD,
+
+COMMA,
+
 EOF_TOKEN,
 UNKNOWN,
 };
+
+inline DeclaredType tokenTypeToDeclaredType(TokenType type)
+{
+switch (type)
+{
+case TokenType::STRING_KEYWORD:
+return DeclaredType::STRING;
+case TokenType::INTEGER_KEYWORD:
+return DeclaredType::INTEGER;
+case TokenType::NUMBER_KEYWORD:
+return DeclaredType::NUMBER;
+case TokenType::BOOLEAN_KEYWORD:
+return DeclaredType::BOOLEAN;
+default:
+return DeclaredType::ANY;
+}
+}
 
 struct Token
 {
 TokenType type;
 std::string lexeme;
-std::variant<std::string, double, bool, std::monostate> literal;
+std::variant<std::string, long long, double, bool, std::monostate> literal;
 int line;
 
-Token(TokenType type, std::string lexeme, std::variant<std::string, double, bool, std::monostate> literal, int line)
+Token(TokenType type, std::string lexeme, std::variant<std::string, long long, double, bool, std::monostate> literal, int line)
 : type(type), lexeme(std::move(lexeme)), literal(std::move(literal)), line(line) {}
 
 Token(TokenType type, std::string lexeme, int line)
@@ -255,14 +325,20 @@ std::string toString() const;
 #include <map>
 #include "ast.h"
 #include "value.h"
+#include <functional>
+#include <stdexcept>
+
+using NativeFunction = std::function<Value(const std::vector<Value> &)>;
 
 class Evaluator
 {
 private:
-std::map<std::string, Value> variables;
+std::map<std::string, std::pair<Value, DeclaredType>> variables;
+std::map<std::string, NativeFunction> nativeFunctions;
 
 Value evaluate(ASTNode *node);
 Value evaluateProgramNode(ProgramNode *node);
+Value evaluateDeclarationStatement(DeclarationStatement *node);
 Value evaluateAssignmentStatement(AssignmentStatement *node);
 Value evaluateEchoStatement(EchoStatement *node);
 Value evaluateStringLiteralExpr(StringLiteralExpr *node);
@@ -271,9 +347,16 @@ Value evaluateBooleanLiteralExpr(BooleanLiteralExpr *node);
 Value evaluateVariableExpr(VariableExpr *node);
 Value evaluateBinaryOpExpr(BinaryOpExpr *node);
 Value evaluateUnaryOpExpr(UnaryOpExpr *node);
+Value evaluateCallExpr(CallExpr *node);
+
+Value performNumericBinaryOp(const Value &left, const Value &right, TokenType op);
+Value performBooleanBinaryOp(const Value &left, const Value &right, TokenType op);
+bool convertToBool(const Value &val);
+void enforceType(const std::string &var_name, DeclaredType declared_type, const Value &assigned_value);
 
 public:
 Evaluator();
+void registerNativeFunction(const std::string &name, NativeFunction func);
 void interpret(std::unique_ptr<ProgramNode> ast);
 };
 
@@ -308,6 +391,7 @@ std::unique_ptr<ASTNode> parseComparison();
 std::unique_ptr<ASTNode> parseTerm();
 std::unique_ptr<ASTNode> parseFactor();
 std::unique_ptr<ASTNode> parseUnary();
+std::unique_ptr<ASTNode> parseCall();
 std::unique_ptr<ASTNode> parseConcatenation();
 std::unique_ptr<ASTNode> parsePrimaryExpression();
 
@@ -320,6 +404,8 @@ std::unique_ptr<ProgramNode> parseProgram();
 #endif
 # /nirvana/prep_ai/../code/bin/main.nv # NOT PART OF CODE DON'T ECHO IT EVER #
 
+public number $test_number = "test";
+
 
 echo "--- Initial setup and String Concatenation ---";
 
@@ -329,7 +415,7 @@ $part1 = "We are ";
 $part2 = "cooool!";
 
 echo $my_variable;
-echo "Lexer and Parser are working.";
+echo "Lexer, Parser, and Evaluator are working.";
 echo $part1 . $part2 . $frequency;
 echo ("This is a grouped " . "string literal concatenation.");
 echo ($part1 . $part2) . " very " . "much!";
@@ -338,61 +424,127 @@ echo "Nested parentheses " . ("should " . ("work."));
 $complex_expression = ($my_variable . " " . "Testing Concatenation") . $frequency;
 echo $complex_expression;
 
-echo "--- Number Literals and Arithmetic Operations ---";
+echo "--- Number Types: Integer (long long) and Number (double) ---";
 
-$num1 = 10;
-$num2 = 5.5121212312312312313;
-$num3 = 2;
-$num4 = -3;
-$zero = 0;
+$integer1 = 10;
+$integer2 = 3;
+$neg_integer = -5;
 
-echo $num1 + $num2;
-echo $num1 - $num3;
-echo $num1 * $num4;
-echo $num1 / $num3;
-echo $num1 / $num2;
-echo $num1 + $num2 * $num3;
-echo ($num1 + $num2) * $num3;
+$double1 = 10.5;
+$double2 = 2.5;
+$long_decimal = 5.123456789;
+$small_decimal = 0.0001;
 
-echo "--- Unary Operators ---";
-echo -$num1;
-echo -($num2 * $num3);
-echo not true;
-echo not false;
+echo "Integer1: " . $integer1;
+echo "Double1: " . $double1;
+echo "Long Decimal: " . $long_decimal;
 
-echo "--- Comparison Operators ---";
-echo $num1 > $num2;
-echo $num1 >= 10;
-echo $num1 < $num3;
-echo $num1 <= 10;
-echo $num1 == 10;
-echo $num2 != 5;
-echo "hello" == "world";
-echo "hello" != "world";
-echo "hello" == "hello";
+echo "--- Integer Arithmetic Operations ---";
+echo "10 + 3 = " . ($integer1 + $integer2);
+echo "10 - 3 = " . ($integer1 - $integer2);
+echo "10 * -5 = " . ($integer1 * $neg_integer);
+echo "10 / 3 (integer division) = " . ($integer1 / $integer2);
+echo "-5 / 3 (integer division) = " . ($neg_integer / $integer2);
 
-echo "--- Logical Operators ---";
+echo "--- Double Arithmetic Operations ---";
+echo "10.5 + 2.5 = " . ($double1 + $double2);
+echo "10.5 - 2.5 = " . ($double1 - $double2);
+echo "10.5 * 5.123456789 = " . ($double1 * $long_decimal);
+echo "10.5 / 2.5 = " . ($double1 / $double2);
+echo "5.123456789 / 0.0001 = " . ($long_decimal / $small_decimal);
+
+echo "--- Mixed Type Arithmetic (promotes to double) ---";
+echo "10 (int) + 2.5 (double) = " . ($integer1 + $double2);
+echo "10.5 (double) - 3 (int) = " . ($double1 - $integer2);
+echo "10 (int) * 5.123456789 (double) = " . ($integer1 * $long_decimal);
+echo "10.5 (double) / 3 (int) = " . ($double1 / $integer2);
+
+echo "--- Order of Operations Mixed Types ---";
+echo "(10 + 2.5) * 3 = " . (($integer1 + $double2) * $integer2);
+echo "10 + 2.5 * 3 = " . ($integer1 + $double2 * $integer2);
+echo "10 / 3.0 = " . (10 / 3.0); 
+
+echo "--- Boolean Type and Logical Operations ---";
 $bool_true = true;
 $bool_false = false;
 
-echo $bool_true and $bool_false;
-echo $bool_true or $bool_false;
-echo ($num1 > 5 and $num2 < 10) or ($num3 == 5);
-echo not ($num1 < 0 or $num2 == 5.5);
+echo "bool_true: " . $bool_true;
+echo "bool_false: " . $bool_false;
+
+echo "true and false = " . ($bool_true and $bool_false);
+echo "true or false = " . ($bool_true or $bool_false);
+echo "not true = " . (not $bool_true);
+echo "not false = " . (not $bool_false);
+
+echo "--- Logical Operations with Numbers (0/0.0 is false, non-zero is true) ---";
+echo "10 and 0 = " . (10 and 0);
+echo "0.0 and 5.5 = " . (0.0 and 5.5);
+echo "10 and 5.5 = " . (10 and 5.5);
+echo "not 10 = " . (not 10);
+echo "not 0 = " . (not 0);
+echo "not 5.5 = " . (not 5.5);
+echo "not 0.0 = " . (not 0.0);
+
+echo "--- Unary Operators on Different Types ---";
+echo "-integer1 = " . -$integer1;
+echo "-double1 = " . -$double1;
+echo "-bool_true = " . -$bool_true; 
+echo "-bool_false = " . -$bool_false; 
+
+echo "--- Comparison Operators (Type promotion for numbers) ---";
+echo "10 > 5.5 = " . ($integer1 > $long_decimal);
+echo "10 >= 10 = " . ($integer1 >= 10);
+echo "10.5 < 10 = " . ($double1 < $integer1);
+echo "10.5 <= 10.5 = " . ($double1 <= 10.5);
+
+echo "10 == 10 = " . ($integer1 == 10);
+echo "10.0 == 10.0 = " . (10.0 == 10.0);
+echo "10 == 10.0 (int vs double) = " . ($integer1 == 10.0);
+echo "10.0 != 5.0 = " . ($double1 != 5.0);
+echo "10 != 5 (int) = " . ($integer1 != 5);
+
+echo "true == 1 = " . ($bool_true == 1);
+echo "false == 0 = " . ($bool_false == 0);
+echo "true != 0 = " . ($bool_true != 0);
+echo "false != 1 = " . ($bool_false != 1);
+echo "true == 1.0 = " . ($bool_true == 1.0);
+echo "false == 0.0 = " . ($bool_false == 0.0);
+
+echo "--- String Comparisons ---";
+echo "\"hello\" == \"world\" = " . ("hello" == "world");
+echo "\"hello\" != \"world\" = " . ("hello" != "world");
+echo "\"hello\" == \"hello\" = " . ("hello" == "hello");
+
+echo "--- Mixed Logical and Comparison Operators ---";
+echo "((10 > 5) and (2.5 < 10.0)) or (3 == 5) = " . (($integer1 > 5 and $double2 < 10.0) or ($integer2 == 5));
+echo "not ((10 < 0) or (5.123 == 5.123)) = " . (not ($integer1 < 0 or $long_decimal == 5.123));
 
 echo "--- Type Conversion in Concatenation ---";
-echo "Value of num1: " . $num1;
+echo "Value of integer1: " . $integer1;
+echo "Value of double1: " . $double1;
 echo "Value of bool_true: " . $bool_true;
-echo 123 . " " . 456;
-echo true . " and " . false;
+echo "123 (int) . \" \" . 456 (int) = " . (123 . " " . 456);
+echo "true (bool) . \" and \" . false (bool) = " . ($bool_true . " and " . $bool_false);
+echo "12.34 (double) . \" is a double\" = " . (12.34 . " is a double");
 
-echo "Order of Operators Test: (3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
+echo "--- Complex Expression Order of Operations ---";
+echo "(3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
+echo "(3.0*3)/3-1*4.0+2*2.0 = " . (3.0*3)/3-1*4.0+2*2.0;
+
+echo "--- Extension Function: abs() ---";
+echo "abs(10) = " . abs(10);
+echo "abs(-10) = " . abs(-10);
+echo "abs(5.5) = " . abs(5.5);
+echo "abs(-5.5) = " . abs(-5.5);
+$val_to_abs = -123.45;
+echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);
 
 echo "--- All features tested. ---";
 # /nirvana/prep_ai/../code/src/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
 #include "parser.h"
 #include <iostream>
+#include <string>
 
 Parser::Parser(Lexer &lexer) : lexer(lexer), currentToken(lexer.getNextToken())
 {
@@ -433,7 +585,15 @@ return std::make_unique<StringLiteralExpr>(value);
 }
 else if (currentToken.type == TokenType::NUMBER_LITERAL)
 {
-double value = std::get<double>(currentToken.literal);
+double value;
+if (std::holds_alternative<long long>(currentToken.literal))
+{
+value = static_cast<double>(std::get<long long>(currentToken.literal));
+}
+else
+{
+value = std::get<double>(currentToken.literal);
+}
 consume(TokenType::NUMBER_LITERAL);
 return std::make_unique<NumberLiteralExpr>(value);
 }
@@ -468,6 +628,35 @@ std::cerr << "Parser error at line " << currentToken.line << ": Expected a prima
 exit(1);
 }
 
+std::unique_ptr<ASTNode> Parser::parseCall()
+{
+std::unique_ptr<ASTNode> expr = parsePrimaryExpression();
+
+while (currentToken.type == TokenType::LEFT_PAREN)
+{
+consume(TokenType::LEFT_PAREN);
+std::vector<std::unique_ptr<ASTNode>> args;
+if (currentToken.type != TokenType::RIGHT_PAREN)
+{
+do
+{
+args.push_back(parseExpression());
+if (currentToken.type == TokenType::COMMA)
+{
+consume(TokenType::COMMA);
+}
+else
+{
+break;
+}
+} while (true);
+}
+consume(TokenType::RIGHT_PAREN);
+expr = std::make_unique<CallExpr>(std::move(expr), std::move(args));
+}
+return expr;
+}
+
 std::unique_ptr<ASTNode> Parser::parseUnary()
 {
 if (currentToken.type == TokenType::BANG ||
@@ -479,7 +668,7 @@ advance();
 std::unique_ptr<ASTNode> right = parseUnary();
 return std::make_unique<UnaryOpExpr>(op, std::move(right));
 }
-return parsePrimaryExpression();
+return parseCall();
 }
 
 std::unique_ptr<ASTNode> Parser::parseFactor()
@@ -595,6 +784,35 @@ std::unique_ptr<ASTNode> expr = parseExpression();
 consume(TokenType::SEMICOLON);
 return std::make_unique<EchoStatement>(std::move(expr));
 }
+else if (currentToken.type == TokenType::PUBLIC)
+{
+consume(TokenType::PUBLIC);
+TokenType declared_type_token = currentToken.type;
+
+if (declared_type_token != TokenType::STRING_KEYWORD &&
+declared_type_token != TokenType::INTEGER_KEYWORD &&
+declared_type_token != TokenType::NUMBER_KEYWORD &&
+declared_type_token != TokenType::BOOLEAN_KEYWORD)
+{
+std::cerr << "Parser error at line " << currentToken.line << ": Expected a type keyword (string, integer, number, boolean) after 'public', but got "
+<< currentToken.toString() << ".\n";
+exit(1);
+}
+consume(declared_type_token);
+
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(currentToken.lexeme);
+consume(TokenType::IDENTIFIER);
+
+std::unique_ptr<ASTNode> value_expr = nullptr;
+if (currentToken.type == TokenType::EQUAL)
+{
+consume(TokenType::EQUAL);
+value_expr = parseExpression();
+}
+
+consume(TokenType::SEMICOLON);
+return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+}
 else if (currentToken.type == TokenType::IDENTIFIER)
 {
 std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(currentToken.lexeme);
@@ -602,7 +820,7 @@ consume(TokenType::IDENTIFIER);
 consume(TokenType::EQUAL);
 std::unique_ptr<ASTNode> value_expr = parseExpression();
 consume(TokenType::SEMICOLON);
-return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr));
+return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
 }
 
 std::cerr << "Parser error at line " << currentToken.line << ": Unexpected token at the beginning of a statement: "
@@ -620,6 +838,72 @@ program->statements.push_back(parseStatement());
 }
 return program;
 }
+# /nirvana/prep_ai/../code/src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#include "extensions.h"
+#include "abs/abs.h"
+
+void registerAllExtensions(Evaluator &eval)
+{
+register_abs_extension(eval);
+}
+# /nirvana/prep_ai/../code/src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#ifndef EXTENSION_ABS_H
+#define EXTENSION_ABS_H
+
+#include "../../../include/value.h"
+#include "../../../include/evaluator.h"
+
+Value nirvana_abs(const std::vector<Value> &args);
+
+void register_abs_extension(Evaluator &eval);
+
+#endif
+# /nirvana/prep_ai/../code/src/extensions/abs/abs.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#include "abs.h"
+#include <cmath>
+#include <stdexcept>
+#include <variant>
+
+Value nirvana_abs(const std::vector<Value> &args)
+{
+if (args.size() != 1)
+{
+throw std::runtime_error("Function 'abs' expects exactly 1 argument: abs(number).");
+}
+
+const Value &val = args[0];
+
+if (std::holds_alternative<long long>(val))
+{
+return std::abs(std::get<long long>(val));
+}
+else if (std::holds_alternative<double>(val))
+{
+return std::abs(std::get<double>(val));
+}
+else
+{
+throw std::runtime_error("Function 'abs' expects a number (integer or number) argument.");
+}
+}
+
+void register_abs_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("abs", nirvana_abs);
+}
+# /nirvana/prep_ai/../code/src/extensions/extensions.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+#ifndef ALL_EXTENSIONS_H
+#define ALL_EXTENSIONS_H
+
+#include "../include/evaluator.h"
+
+void registerAllExtensions(Evaluator &eval);
+
+#endif
 # /nirvana/prep_ai/../code/src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
 #include <iostream>
@@ -633,6 +917,7 @@ return program;
 #include "ast.h"
 #include "token.h"
 #include "evaluator.h"
+#include "extensions/extensions.h"
 
 void printAST(const ASTNode *node, int indent = 0);
 
@@ -692,6 +977,7 @@ std::cout << "----------------------------------\n\n";
 
 std::cout << "Starting interpretation...\n";
 Evaluator evaluator;
+registerAllExtensions(evaluator);
 try
 {
 evaluator.interpret(std::move(ast));
@@ -738,6 +1024,19 @@ for (const auto &stmt : prog->statements)
 printAST(stmt.get(), indent + 1);
 }
 }
+else if (auto *decl = dynamic_cast<const DeclarationStatement *>(node))
+{
+std::cout << "DeclarationStatement (Type: " << Token(decl->declared_type, "", 0).toString() << ", Target: " << decl->target->name << ")\n";
+if (decl->value)
+{
+printAST(decl->value.get(), indent + 1);
+}
+else
+{
+printIndent(indent + 1);
+std::cout << "Initial Value: None\n";
+}
+}
 else if (auto *assign = dynamic_cast<const AssignmentStatement *>(node))
 {
 std::cout << "AssignmentStatement (Target: " << assign->target->name << ")\n";
@@ -775,6 +1074,19 @@ else if (auto *unaryOp = dynamic_cast<const UnaryOpExpr *>(node))
 std::cout << "UnaryOpExpr (Op: " << Token(unaryOp->op, "", 0).toString() << ")\n";
 printAST(unaryOp->right.get(), indent + 1);
 }
+else if (auto *call = dynamic_cast<const CallExpr *>(node))
+{
+std::cout << "CallExpr\n";
+printIndent(indent + 1);
+std::cout << "Callee:\n";
+printAST(call->callee.get(), indent + 2);
+printIndent(indent + 1);
+std::cout << "Arguments (" << call->arguments.size() << "):\n";
+for (const auto &arg : call->arguments)
+{
+printAST(arg.get(), indent + 2);
+}
+}
 else
 {
 std::cout << "Unknown AST Node Type\n";
@@ -787,9 +1099,230 @@ std::cout << "Unknown AST Node Type\n";
 #include <stdexcept>
 #include <cmath>
 #include <sstream>
+#include <variant>
+#include <limits>
+
+bool Evaluator::convertToBool(const Value &val)
+{
+return std::visit([](auto &&arg) -> bool
+{
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+return !arg.empty();
+} else if constexpr (std::is_same_v<T, long long>) {
+return arg != 0LL;
+} else if constexpr (std::is_same_v<T, double>) {
+return arg != 0.0;
+} else if constexpr (std::is_same_v<T, bool>) {
+return arg;
+} else if constexpr (std::is_same_v<T, std::monostate>) {
+return false;
+} else {
+throw std::runtime_error("Internal error: convertToBool received unsupported type.");
+} }, val);
+}
+
+Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &right_val, TokenType op)
+{
+long long left_ll = 0;
+bool left_is_ll_candidate = false;
+if (std::holds_alternative<long long>(left_val))
+{
+left_ll = std::get<long long>(left_val);
+left_is_ll_candidate = true;
+}
+else if (std::holds_alternative<bool>(left_val))
+{
+left_ll = std::get<bool>(left_val) ? 1LL : 0LL;
+left_is_ll_candidate = true;
+}
+else if (std::holds_alternative<double>(left_val))
+{
+left_is_ll_candidate = false;
+}
+
+long long right_ll = 0;
+bool right_is_ll_candidate = false;
+if (std::holds_alternative<long long>(right_val))
+{
+right_ll = std::get<long long>(right_val);
+right_is_ll_candidate = true;
+}
+else if (std::holds_alternative<bool>(right_val))
+{
+right_ll = std::get<bool>(right_val) ? 1LL : 0LL;
+right_is_ll_candidate = true;
+}
+else if (std::holds_alternative<double>(right_val))
+{
+right_is_ll_candidate = false;
+}
+
+if (left_is_ll_candidate && right_is_ll_candidate)
+{
+switch (op)
+{
+case TokenType::PLUS:
+return left_ll + right_ll;
+case TokenType::MINUS:
+return left_ll - right_ll;
+case TokenType::STAR:
+return left_ll * right_ll;
+case TokenType::SLASH:
+if (right_ll == 0LL)
+throw std::runtime_error("Runtime error: Integer division by zero.");
+return left_ll / right_ll;
+default:
+break;
+}
+}
+
+double left_double_val;
+if (std::holds_alternative<double>(left_val))
+left_double_val = std::get<double>(left_val);
+else
+left_double_val = static_cast<double>(left_ll);
+
+double right_double_val;
+if (std::holds_alternative<double>(right_val))
+right_double_val = std::get<double>(right_val);
+else
+right_double_val = static_cast<double>(right_ll);
+
+switch (op)
+{
+case TokenType::PLUS:
+return left_double_val + right_double_val;
+case TokenType::MINUS:
+return left_double_val - right_double_val;
+case TokenType::STAR:
+return left_double_val * right_double_val;
+case TokenType::SLASH:
+if (right_double_val == 0.0)
+throw std::runtime_error("Runtime error: Floating-point division by zero.");
+return left_double_val / right_double_val;
+case TokenType::GREATER:
+return left_double_val > right_double_val;
+case TokenType::GREATER_EQUAL:
+return left_double_val >= right_double_val;
+case TokenType::LESS:
+return left_double_val < right_double_val;
+case TokenType::LESS_EQUAL:
+return left_double_val <= right_double_val;
+default:
+throw std::runtime_error("Unsupported numeric binary operator.");
+}
+}
+
+Value Evaluator::performBooleanBinaryOp(const Value &left_val, const Value &right_val, TokenType op)
+{
+bool left_bool = convertToBool(left_val);
+bool right_bool = convertToBool(right_val);
+
+switch (op)
+{
+case TokenType::AND:
+return left_bool && right_bool;
+case TokenType::OR:
+return left_bool || right_bool;
+default:
+throw std::runtime_error("Unsupported boolean binary operator.");
+}
+}
+
+void Evaluator::enforceType(const std::string &var_name, DeclaredType declared_type, const Value &assigned_value)
+{
+DeclaredType actual_type = valueTypeToDeclaredType(assigned_value);
+
+if (declared_type == DeclaredType::ANY)
+{
+return;
+}
+
+bool type_matches = false;
+switch (declared_type)
+{
+case DeclaredType::STRING:
+type_matches = (actual_type == DeclaredType::STRING);
+break;
+case DeclaredType::INTEGER:
+type_matches = (actual_type == DeclaredType::INTEGER || actual_type == DeclaredType::BOOLEAN);
+if (actual_type == DeclaredType::NUMBER)
+{
+double d_val = std::get<double>(assigned_value);
+type_matches = (d_val == std::floor(d_val) && d_val >= std::numeric_limits<long long>::min() && d_val <= std::numeric_limits<long long>::max());
+}
+break;
+case DeclaredType::NUMBER:
+type_matches = (actual_type == DeclaredType::NUMBER || actual_type == DeclaredType::INTEGER || actual_type == DeclaredType::BOOLEAN);
+break;
+case DeclaredType::BOOLEAN:
+type_matches = (actual_type == DeclaredType::BOOLEAN);
+if (actual_type == DeclaredType::INTEGER)
+{
+long long ll_val = std::get<long long>(assigned_value);
+type_matches = (ll_val == 0LL || ll_val == 1LL);
+}
+break;
+default:
+throw std::runtime_error("Internal error: Unknown declared type for variable '" + var_name + "'.");
+}
+
+if (!type_matches)
+{
+std::stringstream ss;
+ss << "Type mismatch for variable '" << var_name << "'. Expected ";
+switch (declared_type)
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown declared type";
+break;
+}
+ss << ", but got value of type ";
+switch (actual_type)
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+case DeclaredType::ANY:
+ss << "null";
+break;
+default:
+ss << "unknown actual type";
+break;
+}
+throw std::runtime_error(ss.str());
+}
+}
 
 Evaluator::Evaluator()
 {
+}
+
+void Evaluator::registerNativeFunction(const std::string &name, NativeFunction func)
+{
+nativeFunctions[name] = std::move(func);
 }
 
 Value Evaluator::evaluate(ASTNode *node)
@@ -802,6 +1335,10 @@ return std::monostate{};
 if (auto *prog = dynamic_cast<ProgramNode *>(node))
 {
 return evaluateProgramNode(prog);
+}
+else if (auto *decl = dynamic_cast<DeclarationStatement *>(node))
+{
+return evaluateDeclarationStatement(decl);
 }
 else if (auto *assign = dynamic_cast<AssignmentStatement *>(node))
 {
@@ -835,6 +1372,10 @@ else if (auto *unaryOp = dynamic_cast<UnaryOpExpr *>(node))
 {
 return evaluateUnaryOpExpr(unaryOp);
 }
+else if (auto *call = dynamic_cast<CallExpr *>(node))
+{
+return evaluateCallExpr(call);
+}
 else
 {
 throw std::runtime_error("Unknown AST node type during evaluation.");
@@ -850,10 +1391,43 @@ evaluate(stmt.get());
 return std::monostate{};
 }
 
+Value Evaluator::evaluateDeclarationStatement(DeclarationStatement *node)
+{
+std::string var_name = node->target->name;
+DeclaredType declared_type = tokenTypeToDeclaredType(node->declared_type);
+
+if (variables.count(var_name))
+{
+throw std::runtime_error("Runtime error: Variable '" + var_name + "' already declared.");
+}
+
+Value initial_value_resolved = std::monostate{};
+if (node->value)
+{
+initial_value_resolved = evaluate(node->value.get());
+}
+
+enforceType(var_name, declared_type, initial_value_resolved);
+variables[var_name] = {initial_value_resolved, declared_type};
+return initial_value_resolved;
+}
+
 Value Evaluator::evaluateAssignmentStatement(AssignmentStatement *node)
 {
 Value value = evaluate(node->value.get());
-variables[node->target->name] = value;
+std::string var_name = node->target->name;
+
+auto it = variables.find(var_name);
+if (it == variables.end())
+{
+variables[var_name] = {value, DeclaredType::ANY};
+}
+else
+{
+DeclaredType declared_type = it->second.second;
+enforceType(var_name, declared_type, value);
+it->second.first = value;
+}
 return value;
 }
 
@@ -884,11 +1458,36 @@ Value Evaluator::evaluateVariableExpr(VariableExpr *node)
 auto it = variables.find(node->name);
 if (it != variables.end())
 {
-return it->second;
+return it->second.first;
 }
 else
 {
 throw std::runtime_error("Undefined variable: " + node->name);
+}
+}
+
+Value Evaluator::evaluateCallExpr(CallExpr *node)
+{
+if (auto *callee_var = dynamic_cast<VariableExpr *>(node->callee.get()))
+{
+std::string function_name = callee_var->name;
+auto it = nativeFunctions.find(function_name);
+if (it == nativeFunctions.end())
+{
+throw std::runtime_error("Runtime error: Undefined function '" + function_name + "'.");
+}
+
+std::vector<Value> args;
+for (const auto &arg_node : node->arguments)
+{
+args.push_back(evaluate(arg_node.get()));
+}
+
+return it->second(args);
+}
+else
+{
+throw std::runtime_error("Runtime error: Callee in function call is not a simple identifier.");
 }
 }
 
@@ -898,25 +1497,22 @@ Value right_val = evaluate(node->right.get());
 
 if (node->op == TokenType::MINUS)
 {
-if (std::holds_alternative<double>(right_val))
+return std::visit([](auto &&arg) -> Value
 {
-return -std::get<double>(right_val);
-}
-else
-{
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, long long>) {
+return -arg;
+} else if constexpr (std::is_same_v<T, double>) {
+return -arg;
+} else if constexpr (std::is_same_v<T, bool>) {
+return static_cast<long long>(arg ? -1 : 0); 
+} else {
 throw std::runtime_error("Type error: Unary '-' operator can only be applied to numbers.");
-}
+} }, right_val);
 }
 else if (node->op == TokenType::BANG || node->op == TokenType::NOT)
 {
-if (std::holds_alternative<bool>(right_val))
-{
-return !std::get<bool>(right_val);
-}
-else
-{
-throw std::runtime_error("Type error: Unary '!' or 'not' operator can only be applied to booleans.");
-}
+return !convertToBool(right_val);
 }
 throw std::runtime_error("Unsupported unary operator.");
 }
@@ -929,152 +1525,89 @@ Value right_val = evaluate(node->right.get());
 if (node->op == TokenType::DOT)
 {
 std::string s_left, s_right;
-if (std::holds_alternative<std::string>(left_val))
+std::visit([&](auto &&arg)
 {
-s_left = std::get<std::string>(left_val);
-}
-else
-{
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+s_left = arg;
+} else {
 std::stringstream ss;
-ss << left_val;
+ss << arg;
 s_left = ss.str();
-}
-
-if (std::holds_alternative<std::string>(right_val))
+} }, left_val);
+std::visit([&](auto &&arg)
 {
-s_right = std::get<std::string>(right_val);
-}
-else
-{
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+s_right = arg;
+} else {
 std::stringstream ss;
-ss << right_val;
+ss << arg;
 s_right = ss.str();
-}
+} }, right_val);
 return s_left + s_right;
 }
-else if (node->op == TokenType::PLUS)
-{
-if (std::holds_alternative<double>(left_val) && std::holds_alternative<double>(right_val))
-{
-return std::get<double>(left_val) + std::get<double>(right_val);
-}
-else
-{
-throw std::runtime_error("Type error: '+' operator requires two numbers.");
-}
-}
-else if (node->op == TokenType::MINUS)
-{
-if (std::holds_alternative<double>(left_val) && std::holds_alternative<double>(right_val))
-{
-return std::get<double>(left_val) - std::get<double>(right_val);
-}
-else
-{
-throw std::runtime_error("Type error: '-' operator requires two numbers.");
-}
-}
-else if (node->op == TokenType::STAR)
-{
-if (std::holds_alternative<double>(left_val) && std::holds_alternative<double>(right_val))
-{
-return std::get<double>(left_val) * std::get<double>(right_val);
-}
-else
-{
-throw std::runtime_error("Type error: '*' operator requires two numbers.");
-}
-}
-else if (node->op == TokenType::SLASH)
-{
-if (std::holds_alternative<double>(left_val) && std::holds_alternative<double>(right_val))
-{
-if (std::get<double>(right_val) == 0.0)
-{
-throw std::runtime_error("Runtime error: Division by zero.");
-}
-return std::get<double>(left_val) / std::get<double>(right_val);
-}
-else
-{
-throw std::runtime_error("Type error: '/' operator requires two numbers.");
-}
-}
-else if (node->op == TokenType::GREATER || node->op == TokenType::GREATER_EQUAL ||
+else if (node->op == TokenType::PLUS || node->op == TokenType::MINUS ||
+node->op == TokenType::STAR || node->op == TokenType::SLASH ||
+node->op == TokenType::GREATER || node->op == TokenType::GREATER_EQUAL ||
 node->op == TokenType::LESS || node->op == TokenType::LESS_EQUAL)
 {
-if (std::holds_alternative<double>(left_val) && std::holds_alternative<double>(right_val))
+
+bool left_is_numeric_like = std::holds_alternative<long long>(left_val) || std::holds_alternative<double>(left_val) || std::holds_alternative<bool>(left_val);
+bool right_is_numeric_like = std::holds_alternative<long long>(right_val) || std::holds_alternative<double>(right_val) || std::holds_alternative<bool>(right_val);
+
+if (!left_is_numeric_like || !right_is_numeric_like)
 {
-double l = std::get<double>(left_val);
-double r = std::get<double>(right_val);
-switch (node->op)
-{
-case TokenType::GREATER:
-return l > r;
-case TokenType::GREATER_EQUAL:
-return l >= r;
-case TokenType::LESS:
-return l < r;
-case TokenType::LESS_EQUAL:
-return l <= r;
-default:
-break;
+throw std::runtime_error("Type error: Arithmetic/comparison operators can only be applied to numbers.");
 }
-}
-else
-{
-throw std::runtime_error("Type error: Comparison operators (>, >=, <, <=) require two numbers.");
-}
+
+return performNumericBinaryOp(left_val, right_val, node->op);
 }
 else if (node->op == TokenType::EQUAL_EQUAL || node->op == TokenType::BANG_EQUAL)
 {
-bool are_equal;
-if (left_val.index() != right_val.index())
+
+bool are_equal = std::visit([](auto &&l_arg, auto &&r_arg) -> bool
 {
-are_equal = false;
+
+using L = std::decay_t<decltype(l_arg)>;
+using R = std::decay_t<decltype(r_arg)>;
+
+if constexpr (std::is_same_v<L, R>) {
+if constexpr (std::is_same_v<L, std::string>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, long long>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, double>) return std::abs(l_arg - r_arg) < 0.000001; 
+else if constexpr (std::is_same_v<L, bool>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, std::monostate>) return true; 
 }
-else if (std::holds_alternative<std::string>(left_val))
-{
-are_equal = (std::get<std::string>(left_val) == std::get<std::string>(right_val));
+
+
+else if constexpr (
+(std::is_same_v<L, long long> || std::is_same_v<L, double> || std::is_same_v<L, bool>) &&
+(std::is_same_v<R, long long> || std::is_same_v<R, double> || std::is_same_v<R, bool>)
+) {
+double l_double, r_double;
+if constexpr (std::is_same_v<L, long long>) l_double = static_cast<double>(l_arg);
+else if constexpr (std::is_same_v<L, double>) l_double = l_arg;
+else if constexpr (std::is_same_v<L, bool>) l_double = l_arg ? 1.0 : 0.0;
+else l_double = 0.0; 
+
+if constexpr (std::is_same_v<R, long long>) r_double = static_cast<double>(r_arg);
+else if constexpr (std::is_same_v<R, double>) r_double = r_arg;
+else if constexpr (std::is_same_v<R, bool>) r_double = r_arg ? 1.0 : 0.0;
+else r_double = 0.0; 
+
+return std::abs(l_double - r_double) < 0.000001;
 }
-else if (std::holds_alternative<double>(left_val))
-{
-are_equal = (std::fabs(std::get<double>(left_val) - std::get<double>(right_val)) < 0.000001);
-}
-else if (std::holds_alternative<bool>(left_val))
-{
-are_equal = (std::get<bool>(left_val) == std::get<bool>(right_val));
-}
-else if (std::holds_alternative<std::monostate>(left_val))
-{
-are_equal = true;
-}
-else
-{
-throw std::runtime_error("Type error: Unsupported types for equality comparison.");
-}
+
+
+return false; }, left_val, right_val);
 
 return (node->op == TokenType::EQUAL_EQUAL) ? are_equal : !are_equal;
 }
 else if (node->op == TokenType::AND || node->op == TokenType::OR)
 {
-if (std::holds_alternative<bool>(left_val) && std::holds_alternative<bool>(right_val))
-{
-bool l = std::get<bool>(left_val);
-bool r = std::get<bool>(right_val);
-if (node->op == TokenType::AND)
-{
-return l && r;
-}
-else
-{
-return l || r;
-}
-}
-else
-{
-throw std::runtime_error("Type error: Logical operators (and, or) require two booleans.");
-}
+
+return performBooleanBinaryOp(left_val, right_val, node->op);
 }
 
 throw std::runtime_error("Unsupported binary operator.");
@@ -1118,6 +1651,12 @@ static const std::map<TokenType, std::string> tokenTypeNames = {
 {TokenType::AND, "AND"},
 {TokenType::OR, "OR"},
 {TokenType::NOT, "NOT"},
+{TokenType::PUBLIC, "PUBLIC"},
+{TokenType::STRING_KEYWORD, "STRING_KEYWORD"},
+{TokenType::INTEGER_KEYWORD, "INTEGER_KEYWORD"},
+{TokenType::NUMBER_KEYWORD, "NUMBER_KEYWORD"},
+{TokenType::BOOLEAN_KEYWORD, "BOOLEAN_KEYWORD"},
+{TokenType::COMMA, "COMMA"},
 {TokenType::EOF_TOKEN, "EOF_TOKEN"},
 {TokenType::UNKNOWN, "UNKNOWN"},
 };
@@ -1131,11 +1670,21 @@ if (std::holds_alternative<std::string>(literal))
 {
 str += " -> \"" + std::get<std::string>(literal) + "\"";
 }
+else if (std::holds_alternative<long long>(literal))
+{
+str += " -> " + std::to_string(std::get<long long>(literal));
+}
 else if (std::holds_alternative<double>(literal))
 {
 std::stringstream ss;
 ss << std::fixed << std::setprecision(5) << std::get<double>(literal);
-str += " -> " + ss.str();
+std::string s = ss.str();
+s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+if (s.back() == '.')
+{
+s += '0';
+}
+str += " -> " + s;
 }
 else if (std::holds_alternative<bool>(literal))
 {
@@ -1153,6 +1702,20 @@ return str;
 #include <cctype>
 #include <string>
 #include <stdexcept>
+#include <map>
+
+static const std::map<std::string, TokenType> keywords = {
+{"echo", TokenType::ECHO},
+{"true", TokenType::TRUE},
+{"false", TokenType::FALSE},
+{"and", TokenType::AND},
+{"or", TokenType::OR},
+{"not", TokenType::NOT},
+{"public", TokenType::PUBLIC},
+{"string", TokenType::STRING_KEYWORD},
+{"integer", TokenType::INTEGER_KEYWORD},
+{"number", TokenType::NUMBER_KEYWORD},
+{"boolean", TokenType::BOOLEAN_KEYWORD}};
 
 Lexer::Lexer(std::string source) : source(std::move(source)), current(0), line(1) {}
 
@@ -1246,29 +1809,17 @@ while (std::isalnum(peek()) || peek() == '_')
 lexeme += advance();
 }
 
-if (lexeme == "echo")
+if (lexeme.empty() || lexeme[0] != '$')
 {
-return Token(TokenType::ECHO, lexeme, startLine);
-}
-if (lexeme == "true")
+auto it = keywords.find(lexeme);
+if (it != keywords.end())
 {
+if (it->second == TokenType::TRUE)
 return Token(TokenType::TRUE, lexeme, true, startLine);
-}
-if (lexeme == "false")
-{
+if (it->second == TokenType::FALSE)
 return Token(TokenType::FALSE, lexeme, false, startLine);
+return Token(it->second, lexeme, startLine);
 }
-if (lexeme == "and")
-{
-return Token(TokenType::AND, lexeme, startLine);
-}
-if (lexeme == "or")
-{
-return Token(TokenType::OR, lexeme, startLine);
-}
-if (lexeme == "not")
-{
-return Token(TokenType::NOT, lexeme, startLine);
 }
 
 return Token(TokenType::IDENTIFIER, lexeme, startLine);
@@ -1282,7 +1833,41 @@ std::string value;
 
 while (peek() != '"' && peek() != '\0')
 {
+if (peek() == '\\')
+{
+advance();
+char escaped_char = peek();
+if (escaped_char == '\0')
+{
+std::cerr << "Lexer Error: Unterminated escape sequence in string literal at line " << startLine << ".\n";
+return Token(TokenType::UNKNOWN, "", startLine);
+}
+
+switch (escaped_char)
+{
+case '"':
+value += '"';
+break;
+case '\\':
+value += '\\';
+break;
+case 'n':
+value += '\n';
+break;
+case 't':
+value += '\t';
+break;
+default:
+std::cerr << "Lexer Warning: Unrecognized escape sequence '\\" << escaped_char << "' in string literal at line " << startLine << ".\n";
+value += escaped_char;
+break;
+}
+advance();
+}
+else
+{
 value += advance();
+}
 }
 
 if (peek() == '\0')
@@ -1300,6 +1885,8 @@ Token Lexer::number()
 {
 std::string lexeme;
 int startLine = line;
+bool has_decimal = false;
+
 while (std::isdigit(peek()))
 {
 lexeme += advance();
@@ -1307,6 +1894,7 @@ lexeme += advance();
 
 if (peek() == '.' && std::isdigit(peekNext()))
 {
+has_decimal = true;
 lexeme += advance();
 
 while (std::isdigit(peek()))
@@ -1315,6 +1903,8 @@ lexeme += advance();
 }
 }
 
+if (has_decimal)
+{
 try
 {
 double value = std::stod(lexeme);
@@ -1329,6 +1919,25 @@ catch (const std::invalid_argument &)
 {
 std::cerr << "Lexer Error: Invalid number literal: " << lexeme << " at line " << startLine << ".\n";
 return Token(TokenType::UNKNOWN, lexeme, startLine);
+}
+}
+else
+{
+try
+{
+long long value = std::stoll(lexeme);
+return Token(TokenType::NUMBER_LITERAL, lexeme, value, startLine);
+}
+catch (const std::out_of_range &)
+{
+std::cerr << "Lexer Error: Integer literal out of range: " << lexeme << " at line " << startLine << ".\n";
+return Token(TokenType::UNKNOWN, lexeme, startLine);
+}
+catch (const std::invalid_argument &)
+{
+std::cerr << "Lexer Error: Invalid integer literal: " << lexeme << " at line " << startLine << ".\n";
+return Token(TokenType::UNKNOWN, lexeme, startLine);
+}
 }
 }
 
@@ -1412,6 +2021,9 @@ return Token(TokenType::GREATER, ">", startLine);
 }
 case '"':
 return string();
+case ',':
+advance();
+return Token(TokenType::COMMA, ",", startLine);
 case '$':
 return identifierOrKeyword();
 default:

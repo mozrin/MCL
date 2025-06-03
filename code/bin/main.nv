@@ -1,6 +1,4 @@
-// /nirvana/prep_ai/../code/bin/main.nv
-
-public number $test_number = "test";
+// CHANGED FILE: bin/main.nv
 
 
 echo "--- Initial setup and String Concatenation ---";
@@ -58,7 +56,7 @@ echo "10.5 (double) / 3 (int) = " . ($double1 / $integer2);
 echo "--- Order of Operations Mixed Types ---";
 echo "(10 + 2.5) * 3 = " . (($integer1 + $double2) * $integer2);
 echo "10 + 2.5 * 3 = " . ($integer1 + $double2 * $integer2);
-echo "10 / 3.0 = " . (10 / 3.0); // Explicit double literal
+echo "10 / 3.0 = " . (10 / 3.0); 
 
 echo "--- Boolean Type and Logical Operations ---";
 $bool_true = true;
@@ -84,8 +82,8 @@ echo "not 0.0 = " . (not 0.0);
 echo "--- Unary Operators on Different Types ---";
 echo "-integer1 = " . -$integer1;
 echo "-double1 = " . -$double1;
-echo "-bool_true = " . -$bool_true; // Should output -1
-echo "-bool_false = " . -$bool_false; // Should output 0
+echo "-bool_true = " . -$bool_true; 
+echo "-bool_false = " . -$bool_false; 
 
 echo "--- Comparison Operators (Type promotion for numbers) ---";
 echo "10 > 5.5 = " . ($integer1 > $long_decimal);
@@ -126,5 +124,13 @@ echo "12.34 (double) . \" is a double\" = " . (12.34 . " is a double");
 echo "--- Complex Expression Order of Operations ---";
 echo "(3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
 echo "(3.0*3)/3-1*4.0+2*2.0 = " . (3.0*3)/3-1*4.0+2*2.0;
+
+echo "--- Extension Function: abs() ---";
+echo "abs(10) = " . abs(10);
+echo "abs(-10) = " . abs(-10);
+echo "abs(5.5) = " . abs(5.5);
+echo "abs(-5.5) = " . abs(-5.5);
+$val_to_abs = -123.45;
+echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);
 
 echo "--- All features tested. ---";

@@ -1,4 +1,4 @@
-// /nirvana/prep_ai/../code/src/evaluator.cpp
+// CHANGED FILE: src/evaluator.cpp
 #include "../include/evaluator.h"
 #include <iostream>
 #include <stdexcept>
@@ -7,34 +7,28 @@
 #include <variant>
 #include <limits>
 
-// Helper to convert Value to bool for logical operations and type checks
 bool Evaluator::convertToBool(const Value &val)
 {
     return std::visit([](auto &&arg) -> bool
                       {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::string>) {
-            return !arg.empty();
-        } else if constexpr (std::is_same_v<T, long long>) {
-            return arg != 0LL;
-        } else if constexpr (std::is_same_v<T, double>) {
-            return arg != 0.0;
-        } else if constexpr (std::is_same_v<T, bool>) {
-            return arg;
-        } else if constexpr (std::is_same_v<T, std::monostate>) {
-            return false;
-        } else {
-            throw std::runtime_error("Internal error: convertToBool received unsupported type.");
-        } }, val);
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+return !arg.empty();
+} else if constexpr (std::is_same_v<T, long long>) {
+return arg != 0LL;
+} else if constexpr (std::is_same_v<T, double>) {
+return arg != 0.0;
+} else if constexpr (std::is_same_v<T, bool>) {
+return arg;
+} else if constexpr (std::is_same_v<T, std::monostate>) {
+return false;
+} else {
+throw std::runtime_error("Internal error: convertToBool received unsupported type.");
+} }, val);
 }
 
-// Implement Numeric/Boolean Binary Operations
 Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &right_val, TokenType op)
 {
-    // Convert all numeric-like types to double for consistent arithmetic and comparisons
-    // except for explicit integer division or when both are explicitly long long.
-
-    // Attempt to get long long values first
     long long left_ll = 0;
     bool left_is_ll_candidate = false;
     if (std::holds_alternative<long long>(left_val))
@@ -48,7 +42,7 @@ Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &righ
         left_is_ll_candidate = true;
     }
     else if (std::holds_alternative<double>(left_val))
-    { // If it's a double, it's not a long long candidate for strict integer ops
+    {
         left_is_ll_candidate = false;
     }
 
@@ -69,9 +63,6 @@ Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &righ
         right_is_ll_candidate = false;
     }
 
-    // If both original operands were long long (or bool interpreted as long long),
-    // and it's an arithmetic op that can stay long long, perform long long math.
-    // This is for integer division or to preserve integer results where possible.
     if (left_is_ll_candidate && right_is_ll_candidate)
     {
         switch (op)
@@ -85,24 +76,23 @@ Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &righ
         case TokenType::SLASH:
             if (right_ll == 0LL)
                 throw std::runtime_error("Runtime error: Integer division by zero.");
-            return left_ll / right_ll; // Integer division
+            return left_ll / right_ll;
         default:
-            break; // Comparisons and other ops will use double path below
+            break;
         }
     }
 
-    // Fallback to double arithmetic for all other numeric ops, or if mixed types were involved
     double left_double_val;
     if (std::holds_alternative<double>(left_val))
         left_double_val = std::get<double>(left_val);
     else
-        left_double_val = static_cast<double>(left_ll); // Use promoted long long
+        left_double_val = static_cast<double>(left_ll);
 
     double right_double_val;
     if (std::holds_alternative<double>(right_val))
         right_double_val = std::get<double>(right_val);
     else
-        right_double_val = static_cast<double>(right_ll); // Use promoted long long
+        right_double_val = static_cast<double>(right_ll);
 
     switch (op)
     {
@@ -145,7 +135,6 @@ Value Evaluator::performBooleanBinaryOp(const Value &left_val, const Value &righ
     }
 }
 
-// Type enforcement logic
 void Evaluator::enforceType(const std::string &var_name, DeclaredType declared_type, const Value &assigned_value)
 {
     DeclaredType actual_type = valueTypeToDeclaredType(assigned_value);
@@ -164,18 +153,18 @@ void Evaluator::enforceType(const std::string &var_name, DeclaredType declared_t
     case DeclaredType::INTEGER:
         type_matches = (actual_type == DeclaredType::INTEGER || actual_type == DeclaredType::BOOLEAN);
         if (actual_type == DeclaredType::NUMBER)
-        { // Allow double only if it's an exact integer value
+        {
             double d_val = std::get<double>(assigned_value);
             type_matches = (d_val == std::floor(d_val) && d_val >= std::numeric_limits<long long>::min() && d_val <= std::numeric_limits<long long>::max());
         }
         break;
-    case DeclaredType::NUMBER: // Floating point
+    case DeclaredType::NUMBER:
         type_matches = (actual_type == DeclaredType::NUMBER || actual_type == DeclaredType::INTEGER || actual_type == DeclaredType::BOOLEAN);
         break;
     case DeclaredType::BOOLEAN:
         type_matches = (actual_type == DeclaredType::BOOLEAN);
         if (actual_type == DeclaredType::INTEGER)
-        { // Allow 0/1 integers to be assigned to boolean
+        {
             long long ll_val = std::get<long long>(assigned_value);
             type_matches = (ll_val == 0LL || ll_val == 1LL);
         }
@@ -236,6 +225,11 @@ Evaluator::Evaluator()
 {
 }
 
+void Evaluator::registerNativeFunction(const std::string &name, NativeFunction func)
+{
+    nativeFunctions[name] = std::move(func);
+}
+
 Value Evaluator::evaluate(ASTNode *node)
 {
     if (!node)
@@ -283,6 +277,10 @@ Value Evaluator::evaluate(ASTNode *node)
     {
         return evaluateUnaryOpExpr(unaryOp);
     }
+    else if (auto *call = dynamic_cast<CallExpr *>(node))
+    {
+        return evaluateCallExpr(call);
+    }
     else
     {
         throw std::runtime_error("Unknown AST node type during evaluation.");
@@ -308,7 +306,7 @@ Value Evaluator::evaluateDeclarationStatement(DeclarationStatement *node)
         throw std::runtime_error("Runtime error: Variable '" + var_name + "' already declared.");
     }
 
-    Value initial_value_resolved = std::monostate{}; // Default null
+    Value initial_value_resolved = std::monostate{};
     if (node->value)
     {
         initial_value_resolved = evaluate(node->value.get());
@@ -327,16 +325,13 @@ Value Evaluator::evaluateAssignmentStatement(AssignmentStatement *node)
     auto it = variables.find(var_name);
     if (it == variables.end())
     {
-        // Variable not previously declared, treat as dynamic assignment.
-        // For now, this effectively declares it with 'ANY' type.
         variables[var_name] = {value, DeclaredType::ANY};
     }
     else
     {
-        // Variable was declared, enforce type
         DeclaredType declared_type = it->second.second;
         enforceType(var_name, declared_type, value);
-        it->second.first = value; // Update the value
+        it->second.first = value;
     }
     return value;
 }
@@ -368,11 +363,36 @@ Value Evaluator::evaluateVariableExpr(VariableExpr *node)
     auto it = variables.find(node->name);
     if (it != variables.end())
     {
-        return it->second.first; // Return the Value part of the pair
+        return it->second.first;
     }
     else
     {
         throw std::runtime_error("Undefined variable: " + node->name);
+    }
+}
+
+Value Evaluator::evaluateCallExpr(CallExpr *node)
+{
+    if (auto *callee_var = dynamic_cast<VariableExpr *>(node->callee.get()))
+    {
+        std::string function_name = callee_var->name;
+        auto it = nativeFunctions.find(function_name);
+        if (it == nativeFunctions.end())
+        {
+            throw std::runtime_error("Runtime error: Undefined function '" + function_name + "'.");
+        }
+
+        std::vector<Value> args;
+        for (const auto &arg_node : node->arguments)
+        {
+            args.push_back(evaluate(arg_node.get()));
+        }
+
+        return it->second(args);
+    }
+    else
+    {
+        throw std::runtime_error("Runtime error: Callee in function call is not a simple identifier.");
     }
 }
 
@@ -384,16 +404,16 @@ Value Evaluator::evaluateUnaryOpExpr(UnaryOpExpr *node)
     {
         return std::visit([](auto &&arg) -> Value
                           {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, long long>) {
-            return -arg;
-        } else if constexpr (std::is_same_v<T, double>) {
-            return -arg;
-        } else if constexpr (std::is_same_v<T, bool>) {
-            return static_cast<long long>(arg ? -1 : 0); // Convert bool to long long for negation
-        } else {
-            throw std::runtime_error("Type error: Unary '-' operator can only be applied to numbers.");
-        } }, right_val);
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, long long>) {
+return -arg;
+} else if constexpr (std::is_same_v<T, double>) {
+return -arg;
+} else if constexpr (std::is_same_v<T, bool>) {
+return static_cast<long long>(arg ? -1 : 0); 
+} else {
+throw std::runtime_error("Type error: Unary '-' operator can only be applied to numbers.");
+} }, right_val);
     }
     else if (node->op == TokenType::BANG || node->op == TokenType::NOT)
     {
@@ -412,24 +432,24 @@ Value Evaluator::evaluateBinaryOpExpr(BinaryOpExpr *node)
         std::string s_left, s_right;
         std::visit([&](auto &&arg)
                    {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::string>) {
-            s_left = arg;
-        } else {
-            std::stringstream ss;
-            ss << arg;
-            s_left = ss.str();
-        } }, left_val);
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+s_left = arg;
+} else {
+std::stringstream ss;
+ss << arg;
+s_left = ss.str();
+} }, left_val);
         std::visit([&](auto &&arg)
                    {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::string>) {
-            s_right = arg;
-        } else {
-            std::stringstream ss;
-            ss << arg;
-            s_right = ss.str();
-        } }, right_val);
+using T = std::decay_t<decltype(arg)>;
+if constexpr (std::is_same_v<T, std::string>) {
+s_right = arg;
+} else {
+std::stringstream ss;
+ss << arg;
+s_right = ss.str();
+} }, right_val);
         return s_left + s_right;
     }
     else if (node->op == TokenType::PLUS || node->op == TokenType::MINUS ||
@@ -437,7 +457,7 @@ Value Evaluator::evaluateBinaryOpExpr(BinaryOpExpr *node)
              node->op == TokenType::GREATER || node->op == TokenType::GREATER_EQUAL ||
              node->op == TokenType::LESS || node->op == TokenType::LESS_EQUAL)
     {
-        // Ensure both operands are numeric-like (long long, double, or bool)
+
         bool left_is_numeric_like = std::holds_alternative<long long>(left_val) || std::holds_alternative<double>(left_val) || std::holds_alternative<bool>(left_val);
         bool right_is_numeric_like = std::holds_alternative<long long>(right_val) || std::holds_alternative<double>(right_val) || std::holds_alternative<bool>(right_val);
 
@@ -450,48 +470,48 @@ Value Evaluator::evaluateBinaryOpExpr(BinaryOpExpr *node)
     }
     else if (node->op == TokenType::EQUAL_EQUAL || node->op == TokenType::BANG_EQUAL)
     {
-        // Equality and inequality can compare across different types, with specific rules.
+
         bool are_equal = std::visit([](auto &&l_arg, auto &&r_arg) -> bool
                                     {
-        // Case 1: Both operands are of the same type
-        using L = std::decay_t<decltype(l_arg)>;
-        using R = std::decay_t<decltype(r_arg)>;
 
-        if constexpr (std::is_same_v<L, R>) {
-            if constexpr (std::is_same_v<L, std::string>) return l_arg == r_arg;
-            else if constexpr (std::is_same_v<L, long long>) return l_arg == r_arg;
-            else if constexpr (std::is_same_v<L, double>) return std::abs(l_arg - r_arg) < 0.000001; // Floating point comparison
-            else if constexpr (std::is_same_v<L, bool>) return l_arg == r_arg;
-            else if constexpr (std::is_same_v<L, std::monostate>) return true; // null == null
-        }
-        // Case 2: Different types, but both are numeric-like (long long, double, bool)
-        // Convert both to double for comparison.
-        else if constexpr (
-            (std::is_same_v<L, long long> || std::is_same_v<L, double> || std::is_same_v<L, bool>) &&
-            (std::is_same_v<R, long long> || std::is_same_v<R, double> || std::is_same_v<R, bool>)
-        ) {
-            double l_double, r_double;
-            if constexpr (std::is_same_v<L, long long>) l_double = static_cast<double>(l_arg);
-            else if constexpr (std::is_same_v<L, double>) l_double = l_arg;
-            else if constexpr (std::is_same_v<L, bool>) l_double = l_arg ? 1.0 : 0.0;
-            else l_double = 0.0; // Should not be hit with outer check, but for completeness
+using L = std::decay_t<decltype(l_arg)>;
+using R = std::decay_t<decltype(r_arg)>;
 
-            if constexpr (std::is_same_v<R, long long>) r_double = static_cast<double>(r_arg);
-            else if constexpr (std::is_same_v<R, double>) r_double = r_arg;
-            else if constexpr (std::is_same_v<R, bool>) r_double = r_arg ? 1.0 : 0.0;
-            else r_double = 0.0; // Should not be hit
+if constexpr (std::is_same_v<L, R>) {
+if constexpr (std::is_same_v<L, std::string>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, long long>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, double>) return std::abs(l_arg - r_arg) < 0.000001; 
+else if constexpr (std::is_same_v<L, bool>) return l_arg == r_arg;
+else if constexpr (std::is_same_v<L, std::monostate>) return true; 
+}
 
-            return std::abs(l_double - r_double) < 0.000001;
-        }
-        // Case 3: Any other combination of different types (e.g., string vs. number, string vs. null)
-        // These are generally considered not equal.
-        return false; }, left_val, right_val);
+
+else if constexpr (
+(std::is_same_v<L, long long> || std::is_same_v<L, double> || std::is_same_v<L, bool>) &&
+(std::is_same_v<R, long long> || std::is_same_v<R, double> || std::is_same_v<R, bool>)
+) {
+double l_double, r_double;
+if constexpr (std::is_same_v<L, long long>) l_double = static_cast<double>(l_arg);
+else if constexpr (std::is_same_v<L, double>) l_double = l_arg;
+else if constexpr (std::is_same_v<L, bool>) l_double = l_arg ? 1.0 : 0.0;
+else l_double = 0.0; 
+
+if constexpr (std::is_same_v<R, long long>) r_double = static_cast<double>(r_arg);
+else if constexpr (std::is_same_v<R, double>) r_double = r_arg;
+else if constexpr (std::is_same_v<R, bool>) r_double = r_arg ? 1.0 : 0.0;
+else r_double = 0.0; 
+
+return std::abs(l_double - r_double) < 0.000001;
+}
+
+
+return false; }, left_val, right_val);
 
         return (node->op == TokenType::EQUAL_EQUAL) ? are_equal : !are_equal;
     }
     else if (node->op == TokenType::AND || node->op == TokenType::OR)
     {
-        // Logical operators always return bool and operate on bool interpretation of values
+
         return performBooleanBinaryOp(left_val, right_val, node->op);
     }
 

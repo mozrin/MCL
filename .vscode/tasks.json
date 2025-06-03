@@ -9,6 +9,8 @@
                 "-std=c++17",
                 "-g",
                 "code/src/*.cpp",
+                "code/src/extensions/extensions.cpp",
+                "code/src/extensions/abs/abs.cpp",
                 "-Icode/include",
                 "-o",
                 "code/bin/nirvana"

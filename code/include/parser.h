@@ -1,4 +1,4 @@
-// /nirvana/prep_ai/../code/include/parser.h
+// CHANGED FILE: include/parser.h
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -27,6 +27,7 @@ private:
     std::unique_ptr<ASTNode> parseTerm();
     std::unique_ptr<ASTNode> parseFactor();
     std::unique_ptr<ASTNode> parseUnary();
+    std::unique_ptr<ASTNode> parseCall();
     std::unique_ptr<ASTNode> parseConcatenation();
     std::unique_ptr<ASTNode> parsePrimaryExpression();
 

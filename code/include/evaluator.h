@@ -1,4 +1,4 @@
-// /nirvana/prep_ai/../code/include/evaluator.h
+// CHANGED FILE: include/evaluator.h
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
@@ -11,33 +11,36 @@
 #include <functional>
 #include <stdexcept>
 
+using NativeFunction = std::function<Value(const std::vector<Value> &)>;
+
 class Evaluator
 {
 private:
-std::map<std::string, std::pair<Value, DeclaredType>> variables;
+    std::map<std::string, std::pair<Value, DeclaredType>> variables;
+    std::map<std::string, NativeFunction> nativeFunctions;
 
-Value evaluate(ASTNode *node);
-Value evaluateProgramNode(ProgramNode *node);
-Value evaluateDeclarationStatement(DeclarationStatement *node);
-Value evaluateAssignmentStatement(AssignmentStatement *node);
-Value evaluateEchoStatement(EchoStatement *node);
-Value evaluateStringLiteralExpr(StringLiteralExpr *node);
-Value evaluateNumberLiteralExpr(NumberLiteralExpr *node);
-Value evaluateBooleanLiteralExpr(BooleanLiteralExpr *node);
-Value evaluateVariableExpr(VariableExpr *node);
-Value evaluateBinaryOpExpr(BinaryOpExpr *node);
-Value evaluateUnaryOpExpr(UnaryOpExpr *node);
+    Value evaluate(ASTNode *node);
+    Value evaluateProgramNode(ProgramNode *node);
+    Value evaluateDeclarationStatement(DeclarationStatement *node);
+    Value evaluateAssignmentStatement(AssignmentStatement *node);
+    Value evaluateEchoStatement(EchoStatement *node);
+    Value evaluateStringLiteralExpr(StringLiteralExpr *node);
+    Value evaluateNumberLiteralExpr(NumberLiteralExpr *node);
+    Value evaluateBooleanLiteralExpr(BooleanLiteralExpr *node);
+    Value evaluateVariableExpr(VariableExpr *node);
+    Value evaluateBinaryOpExpr(BinaryOpExpr *node);
+    Value evaluateUnaryOpExpr(UnaryOpExpr *node);
+    Value evaluateCallExpr(CallExpr *node);
 
-// Helper for type promotion and operation dispatch
-Value performNumericBinaryOp(const Value& left, const Value& right, TokenType op);
-Value performBooleanBinaryOp(const Value& left, const Value& right, TokenType op);
-bool convertToBool(const Value& val);
-void enforceType(const std::string& var_name, DeclaredType declared_type, const Value& assigned_value);
-
+    Value performNumericBinaryOp(const Value &left, const Value &right, TokenType op);
+    Value performBooleanBinaryOp(const Value &left, const Value &right, TokenType op);
+    bool convertToBool(const Value &val);
+    void enforceType(const std::string &var_name, DeclaredType declared_type, const Value &assigned_value);
 
 public:
-Evaluator();
-void interpret(std::unique_ptr<ProgramNode> ast);
+    Evaluator();
+    void registerNativeFunction(const std::string &name, NativeFunction func);
+    void interpret(std::unique_ptr<ProgramNode> ast);
 };
 
 #endif

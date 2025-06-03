@@ -1,15 +1,10 @@
-I want to define to types and stick with them ...
+We are going to create the ability to add functions. Here is what I want ...
 
-string = self explanitory
-number = anything that is numerical .. stored as a 64 bit value.
+in the src/ folder I am going to create a folder called extensions/
 
-the plan is that every other kind of numerical value is a wrapper around number.
+I want to add a file called random.cpp and if necessary random.h in that folder and then have the main program read everything in the extensions folder and integrate them into the language.
 
-integer is a type of number
-decimal(x,y) is a type of number where the precision is x to the left and y to the right.
-boolean is a 0 or non-zero number (in memory) - the user see true/false
-
-what are your thoughts?
+I like the idea of each file in the extensiosn folder being a function in the language. Sound okay?
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
