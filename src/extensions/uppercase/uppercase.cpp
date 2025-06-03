@@ -1,4 +1,3 @@
-// /nirvana/prep_ai/../code/src/extensions/uppercase/uppercase.cpp
 #include "uppercase.h"
 #include "../../core/constants.h"
 #include <cmath>

@@ -1,4 +1,3 @@
-// NEW FILE: src/extensions/sqrt/sqrt.cpp
 #include "sqrt.h"
 #include <cmath>
 #include <stdexcept>

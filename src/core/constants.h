@@ -1,4 +1,3 @@
-// /nirvana/prep_ai/../code/src/core/constants.h
 #ifndef NIRVANA_CONSTANTS_H
 #define NIRVANA_CONSTANTS_H
 

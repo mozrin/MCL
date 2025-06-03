@@ -1,4 +1,3 @@
-// NEW FILE: src/extensions/abs/abs.cpp
 #include "abs.h"
 #include <cmath>
 #include <stdexcept>

@@ -1,4 +1,3 @@
-// CHANGED FILE: src/lexer.cpp
 #include "lexer.h"
 #include <iostream>
 #include <cctype>

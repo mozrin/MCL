@@ -1,4 +1,3 @@
-// /nirvana/prep_ai/../code/src/main.cpp
 #include <iostream>
 #include <fstream>
 #include <sstream>

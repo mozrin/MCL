@@ -1,4 +1,3 @@
-// CHANGED FILE: src/parser.cpp
 #include "parser.h"
 #include <iostream>
 #include <string>

@@ -1,4 +1,3 @@
-// /nirvana/prep_ai/../code/src/extensions/uppercase/uppercase.h
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
 

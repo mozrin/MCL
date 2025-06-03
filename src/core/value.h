@@ -1,4 +1,3 @@
-// CHANGED FILE: include/value.h
 #ifndef VALUE_H
 #define VALUE_H
 

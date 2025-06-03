@@ -1,4 +1,3 @@
-// CHANGED FILE: src/token.cpp
 #include "token.h"
 #include <map>
 #include <string>
