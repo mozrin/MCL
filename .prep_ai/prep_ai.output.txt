@@ -2,203 +2,34 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-I want to modify the main to run more than one file. Specifically ... I want to be able to fun *.nv or test/*.nv
+I want to modify the main to run more than one file. Specifically ... I want to be able 
+to fun *.nv or test/*.nv
+
+I want all of these to work
+
+nirvana
+nirvana bob.nv
+nirvana *.nv
+nirvana test_*.nv
+nirvana tests/*.nv
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
 DO NOT WRITE CODE UNLESS I ASK!
 --- Folder Structure ---
 
-/nirvana/prep_ai/../code/
-├── bin/
-└── src/
-    ├── core/
-    └── extensions/
-        ├── abs/
-        ├── sqrt/
-        └── uppercase/
+/nirvana/.prep_ai/../src/
+├── core/
+└── extensions/
+    ├── abs/
+    ├── sqrt/
+    └── uppercase/
 
-8 directories, 0 files
+6 directories, 0 files
 
 --- Baseline File Contents ---
 
-# /nirvana/prep_ai/../code/bin/main.nv # NOT PART OF CODE DON'T ECHO IT EVER #
-
-echo "--- Initial setup and String Concatenation ---";
-
-$my_variable = "Hello from main.nv!";
-$frequency = " ... most of the time.";
-$part1 = "We are ";
-$part2 = "cooool!";
-
-echo $my_variable;
-echo "Lexer, Parser, and Evaluator are working.";
-echo $part1 . $part2 . $frequency;
-echo ("This is a grouped " . "string literal concatenation.");
-echo ($part1 . $part2) . " very " . "much!";
-echo "Nested parentheses " . ("should " . ("work."));
-
-$complex_expression = ($my_variable . " " . "Testing Concatenation") . $frequency;
-echo $complex_expression;
-
-echo "--- Number Types: Integer (long long) and Number (double) ---";
-
-$integer1 = 10;
-$integer2 = 3;
-$neg_integer = -5;
-
-$double1 = 10.5;
-$double2 = 2.5;
-$long_decimal = 5.123456789;
-$small_decimal = 0.0001;
-
-echo "Integer1: " . $integer1;
-echo "Double1: " . $double1;
-echo "Long Decimal: " . $long_decimal;
-
-echo "--- Integer Arithmetic Operations ---";
-echo "10 + 3 = " . ($integer1 + $integer2);
-echo "10 - 3 = " . ($integer1 - $integer2);
-echo "10 * -5 = " . ($integer1 * $neg_integer);
-echo "10 / 3 (integer division) = " . ($integer1 / $integer2);
-echo "-5 / 3 (integer division) = " . ($neg_integer / $integer2);
-
-echo "--- Double Arithmetic Operations ---";
-echo "10.5 + 2.5 = " . ($double1 + $double2);
-echo "10.5 - 2.5 = " . ($double1 - $double2);
-echo "10.5 * 5.123456789 = " . ($double1 * $long_decimal);
-echo "10.5 / 2.5 = " . ($double1 / $double2);
-echo "5.123456789 / 0.0001 = " . ($long_decimal / $small_decimal);
-
-echo "--- Mixed Type Arithmetic (promotes to double) ---";
-echo "10 (int) + 2.5 (double) = " . ($integer1 + $double2);
-echo "10.5 (double) - 3 (int) = " . ($double1 - $integer2);
-echo "10 (int) * 5.123456789 (double) = " . ($integer1 * $long_decimal);
-echo "10.5 (double) / 3 (int) = " . ($double1 / $integer2);
-
-echo "--- Order of Operations Mixed Types ---";
-echo "(10 + 2.5) * 3 = " . (($integer1 + $double2) * $integer2);
-echo "10 + 2.5 * 3 = " . ($integer1 + $double2 * $integer2);
-echo "10 / 3.0 = " . (10 / 3.0); 
-
-echo "--- Boolean Type and Logical Operations ---";
-$bool_true = true;
-$bool_false = false;
-
-echo "bool_true: " . $bool_true;
-echo "bool_false: " . $bool_false;
-
-echo "true and false = " . ($bool_true and $bool_false);
-echo "true or false = " . ($bool_true or $bool_false);
-echo "not true = " . (not $bool_true);
-echo "not false = " . (not $bool_false);
-
-echo "--- Logical Operations with Numbers (0/0.0 is false, non-zero is true) ---";
-echo "10 and 0 = " . (10 and 0);
-echo "0.0 and 5.5 = " . (0.0 and 5.5);
-echo "10 and 5.5 = " . (10 and 5.5);
-echo "not 10 = " . (not 10);
-echo "not 0 = " . (not 0);
-echo "not 5.5 = " . (not 5.5);
-echo "not 0.0 = " . (not 0.0);
-
-echo "--- Unary Operators on Different Types ---";
-echo "-integer1 = " . -$integer1;
-echo "-double1 = " . -$double1;
-echo "-bool_true = " . -$bool_true; 
-echo "-bool_false = " . -$bool_false; 
-
-echo "--- Comparison Operators (Type promotion for numbers) ---";
-echo "10 > 5.5 = " . ($integer1 > $long_decimal);
-echo "10 >= 10 = " . ($integer1 >= 10);
-echo "10.5 < 10 = " . ($double1 < $integer1);
-echo "10.5 <= 10.5 = " . ($double1 <= 10.5);
-
-echo "10 == 10 = " . ($integer1 == 10);
-echo "10.0 == 10.0 = " . (10.0 == 10.0);
-echo "10 == 10.0 (int vs double) = " . ($integer1 == 10.0);
-echo "10.0 != 5.0 = " . ($double1 != 5.0);
-echo "10 != 5 (int) = " . ($integer1 != 5);
-
-echo "true == 1 = " . ($bool_true == 1);
-echo "false == 0 = " . ($bool_false == 0);
-echo "true != 0 = " . ($bool_true != 0);
-echo "false != 1 = " . ($bool_false != 1);
-echo "true == 1.0 = " . ($bool_true == 1.0);
-echo "false == 0.0 = " . ($bool_false == 0.0);
-
-echo "--- String Comparisons ---";
-echo "\"hello\" == \"world\" = " . ("hello" == "world");
-echo "\"hello\" != \"world\" = " . ("hello" != "world");
-echo "\"hello\" == \"hello\" = " . ("hello" == "hello");
-
-echo "--- Mixed Logical and Comparison Operators ---";
-echo "((10 > 5) and (2.5 < 10.0)) or (3 == 5) = " . (($integer1 > 5 and $double2 < 10.0) or ($integer2 == 5));
-echo "not ((10 < 0) or (5.123 == 5.123)) = " . (not ($integer1 < 0 or $long_decimal == 5.123));
-
-echo "--- Type Conversion in Concatenation ---";
-echo "Value of integer1: " . $integer1;
-echo "Value of double1: " . $double1;
-echo "Value of bool_true: " . $bool_true;
-echo "123 (int) . \" \" . 456 (int) = " . (123 . " " . 456);
-echo "true (bool) . \" and \" . false (bool) = " . ($bool_true . " and " . $bool_false);
-echo "12.34 (double) . \" is a double\" = " . (12.34 . " is a double");
-
-echo "--- Complex Expression Order of Operations ---";
-echo "(3*3)/3-1*4+2*2 = " . (3*3)/3-1*4+2*2;
-echo "(3.0*3)/3-1*4.0+2*2.0 = " . (3.0*3)/3-1*4.0+2*2.0;
-
-echo "--- Extension Function: abs() ---";
-echo "abs(10) = " . abs(10);
-echo "abs(-10) = " . abs(-10);
-echo "abs(5.5) = " . abs(5.5);
-echo "abs(-5.5) = " . abs(-5.5);
-$val_to_abs = -123.45;
-echo "abs(" . $val_to_abs . ") = " . abs($val_to_abs);
-
-echo "--- Extension Function: sqrt() ---";
-echo "sqrt(9) = " . sqrt(9);
-echo "sqrt(25.0) = " . sqrt(25.0);
-echo "sqrt(2) = " . sqrt(2);
-$val_to_sqrt = 144;
-echo "sqrt(" . $val_to_sqrt . ") = " . sqrt($val_to_sqrt);
-
-echo "--- Extension Function: uppercase() ---";
-$test_string_1 = "hello world";
-$test_string_2 = "this is a Test String with numb3rs and symbols!@#";
-$test_string_4 = "already UPpER and lOwER";
-
-echo "Default (MCL_UPPERCASE_EVERYTHING):";
-echo "  uppercase(\"" . $test_string_1 . "\") = " . uppercase($test_string_1);
-echo "  uppercase(\"" . $test_string_2 . "\") = " . uppercase($test_string_2);
-
-echo "MCL_UPPERCASE_EVERYTHING:";
-echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_1, MCL_UPPERCASE_EVERYTHING);
-echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_EVERYTHING) = " . uppercase($test_string_2, MCL_UPPERCASE_EVERYTHING);
-
-echo "MCL_UPPERCASE_TITLE:";
-echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TITLE);
-echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TITLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TITLE);
-echo "  uppercase(\"another-example_string\", MCL_UPPERCASE_TITLE) = " . uppercase("another-example_string", MCL_UPPERCASE_TITLE);
-
-echo "MCL_UPPERCASE_FIRST:";
-echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_1, MCL_UPPERCASE_FIRST);
-echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_FIRST) = " . uppercase($test_string_2, MCL_UPPERCASE_FIRST);
-echo "  uppercase(\" already capitalized\", MCL_UPPERCASE_FIRST) = " . uppercase(" already capitalized", MCL_UPPERCASE_FIRST);
-
-echo "MCL_UPPERCASE_ALTERNATING:";
-echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_1, MCL_UPPERCASE_ALTERNATING);
-echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_2, MCL_UPPERCASE_ALTERNATING);
-echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_ALTERNATING) = " . uppercase($test_string_4, MCL_UPPERCASE_ALTERNATING);
-
-echo "MCL_UPPERCASE_TOGGLE:";
-echo "  uppercase(\"" . $test_string_1 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_1, MCL_UPPERCASE_TOGGLE);
-echo "  uppercase(\"" . $test_string_2 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_2, MCL_UPPERCASE_TOGGLE);
-echo "  uppercase(\"" . $test_string_4 . "\", MCL_UPPERCASE_TOGGLE) = " . uppercase($test_string_4, MCL_UPPERCASE_TOGGLE);
-
-echo "--- All features tested and extensions loaded. ---";
-# /nirvana/prep_ai/../code/src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "uppercase.h"
 #include "../../core/constants.h"
 #include <cmath>
@@ -408,8 +239,7 @@ void register_uppercase_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("uppercase", nirvana_uppercase);
 }
-# /nirvana/prep_ai/../code/src/extensions/uppercase/uppercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
 
@@ -421,7 +251,7 @@ Value nirvana_uppercase(const std::vector<Value> &args);
 void register_uppercase_extension(Evaluator &eval);
 
 #endif
-# /nirvana/prep_ai/../code/src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "extensions.h"
 
 void registerAllExtensions(Evaluator &eval)
@@ -430,7 +260,7 @@ register_abs_extension(eval);
 register_sqrt_extension(eval);
 register_uppercase_extension(eval);
 }
-# /nirvana/prep_ai/../code/src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
 #define EXTENSION_ABS_H
 
@@ -442,8 +272,7 @@ Value nirvana_abs(const std::vector<Value> &args);
 void register_abs_extension(Evaluator &eval);
 
 #endif
-# /nirvana/prep_ai/../code/src/extensions/abs/abs.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/extensions/abs/abs.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "abs.h"
 #include <cmath>
 #include <stdexcept>
@@ -476,7 +305,7 @@ void register_abs_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("abs", nirvana_abs);
 }
-# /nirvana/prep_ai/../code/src/extensions/extensions.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/extensions/extensions.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef ALL_EXTENSIONS_H
 #define ALL_EXTENSIONS_H
 
@@ -489,8 +318,7 @@ eval.registerNativeFunction("abs", nirvana_abs);
 void registerAllExtensions(Evaluator &eval);
 
 #endif
-# /nirvana/prep_ai/../code/src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "sqrt.h"
 #include <cmath>
 #include <stdexcept>
@@ -529,7 +357,7 @@ void register_sqrt_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("sqrt", nirvana_sqrt);
 }
-# /nirvana/prep_ai/../code/src/extensions/sqrt/sqrt.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_SQRT_H
 #define EXTENSION_SQRT_H
 
@@ -541,13 +369,15 @@ Value nirvana_sqrt(const std::vector<Value> &args);
 void register_sqrt_extension(Evaluator &eval);
 
 #endif
-# /nirvana/prep_ai/../code/src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <memory>
 #include <exception>
+#include <vector>
+#include <filesystem>
+#include <regex>
 
 #include "core/lexer.h"
 #include "core/parser.h"
@@ -558,19 +388,14 @@ void register_sqrt_extension(Evaluator &eval);
 #include "core/debugger.h"
 #include "extensions/extensions.h"
 
-int main(int argc, char *argv[])
+namespace fs = std::filesystem;
+
+int process_single_file(const std::string &filename)
 {
-debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
+debug_print_message("Processing file: '" + filename + "'...");
 
 std::string source_code;
-std::string input_filename = "main.nv";
-
-if (argc > 1)
-{
-input_filename = argv[1];
-}
-
-std::ifstream file(input_filename);
+std::ifstream file(filename);
 if (file.is_open())
 {
 std::stringstream buffer;
@@ -580,39 +405,37 @@ file.close();
 }
 else
 {
-std::cerr << "Error: Could not open file '" << input_filename << "'.\n";
-std::cerr << "Please ensure '" << input_filename << "' exists in the project root,\n";
-std::cerr << "or provide a valid path as a command-line argument.\n";
+std::cerr << "Error: Could not open file '" << filename << "'. Skipping.\n";
 return 1;
 }
 
 Lexer lexer(source_code);
 Parser parser(lexer);
 
-debug_print_message("Parsing file: '" + input_filename + "'...");
+debug_print_message("Parsing file: '" + filename + "'...");
 
 std::unique_ptr<ProgramNode> ast;
 try
 {
 ast = parser.parseProgram();
-debug_print_message("Parsing finished.");
+debug_print_message("Parsing finished for '" + filename + "'.");
 }
 catch (const std::runtime_error &e)
 {
-std::cerr << "Parser/Lexer Error during parsing: " << e.what() << std::endl;
+std::cerr << "Parser/Lexer Error in '" << filename << "': " << e.what() << std::endl;
 return 1;
 }
 catch (const std::exception &e)
 {
-std::cerr << "An unexpected error occurred during parsing: " << e.what() << std::endl;
+std::cerr << "An unexpected error occurred during parsing '" << filename << "': " << e.what() << std::endl;
 return 1;
 }
 
-debug_print_ast_header("Abstract Syntax Tree (AST)");
+debug_print_ast_header("Abstract Syntax Tree (AST) for " + filename);
 debug_print_ast_node(ast.get());
 debug_print_ast_footer();
 
-debug_print_message("Starting interpretation...");
+debug_print_message("Starting interpretation for '" + filename + "'...");
 Evaluator evaluator;
 registerAllExtensions(evaluator);
 
@@ -625,25 +448,94 @@ evaluator.registerConstant("MCL_UPPERCASE_TOGGLE", (long long)MCL_UPPERCASE_TOGG
 try
 {
 evaluator.interpret(std::move(ast));
-debug_print_message("Interpretation finished successfully.");
+debug_print_message("Interpretation finished successfully for '" + filename + "'.");
 }
 catch (const std::runtime_error &e)
 {
-std::cerr << "Runtime Error: " << e.what() << std::endl;
+std::cerr << "Runtime Error in '" << filename << "': " << e.what() << std::endl;
 return 1;
 }
 catch (const std::exception &e)
 {
-std::cerr << "An unexpected error occurred during interpretation: " << e.what() << std::endl;
+std::cerr << "An unexpected error occurred during interpretation of '" << filename << "': " << e.what() << std::endl;
 return 1;
 }
 
-debug_print_message("AST generated. Ready for Evaluation (next step).");
-
+debug_print_message("Finished processing '" + filename + "'.");
 return 0;
 }
-# /nirvana/prep_ai/../code/src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
 
+std::vector<std::string> get_files_from_pattern(const std::string &pattern_arg)
+{
+std::vector<std::string> files;
+fs::path p(pattern_arg);
+
+bool contains_wildcard = pattern_arg.find('*') != std::string::npos || pattern_arg.find('?') != std::string::npos;
+
+if (contains_wildcard)
+{
+fs::path directory = p.has_parent_path() ? p.parent_path() : fs::current_path();
+std::string filename_pattern_str = p.filename().string();
+
+std::string regex_pattern_str = filename_pattern_str;
+regex_pattern_str = std::regex_replace(regex_pattern_str, std::regex("[\\.^$|()\\[\\]{}+?]"), "\\$&");
+regex_pattern_str = std::regex_replace(regex_pattern_str, std::regex("\\*"), ".*");
+regex_pattern_str = std::regex_replace(regex_pattern_str, std::regex("\\?"), ".");
+std::regex file_regex(regex_pattern_str);
+
+if (!fs::exists(directory))
+{
+std::cerr << "Warning: Directory '" << directory.string() << "' specified in pattern '" << pattern_arg << "' does not exist. Skipping.\n";
+return files;
+}
+if (!fs::is_directory(directory))
+{
+std::cerr << "Warning: Path '" << directory.string() << "' specified in pattern '" << pattern_arg << "' is not a directory. Skipping.\n";
+return files;
+}
+
+try
+{
+for (const auto &entry : fs::directory_iterator(directory))
+{
+if (entry.is_regular_file())
+{
+if (std::regex_match(entry.path().filename().string(), file_regex))
+{
+files.push_back(entry.path().string());
+}
+}
+}
+}
+catch (const fs::filesystem_error &e)
+{
+std::cerr << "Filesystem error while iterating directory '" << directory.string() << "': " << e.what() << std::endl;
+}
+}
+else
+{
+if (fs::exists(p) && fs::is_regular_file(p))
+{
+files.push_back(pattern_arg);
+}
+else
+{
+std::cerr << "Error: File '" << pattern_arg << "' not found or is not a regular file. Skipping.\n";
+}
+}
+return files;
+}
+
+int main(int argc, char *argv[])
+{
+debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
+
+std::vector<std::string> files_to_run;
+
+if (argc == 1)
+{
+
+# /nirvana/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef LEXER_H
 #define LEXER_H
 
@@ -673,8 +565,7 @@ Token getNextToken();
 };
 
 #endif
-# /nirvana/prep_ai/../code/src/core/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef AST_H
 #define AST_H
 
@@ -775,8 +666,7 @@ ProgramNode() = default;
 };
 
 #endif
-# /nirvana/prep_ai/../code/src/core/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "parser.h"
 #include <iostream>
 #include <string>
@@ -1073,8 +963,7 @@ program->statements.push_back(parseStatement());
 }
 return program;
 }
-# /nirvana/prep_ai/../code/src/core/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef NIRVANA_DEBUGGER_H
 #define NIRVANA_DEBUGGER_H
 
@@ -1102,8 +991,7 @@ inline void debug_print_ast_footer() {}
 #endif
 
 #endif
-# /nirvana/prep_ai/../code/src/core/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef VALUE_H
 #define VALUE_H
 
@@ -1166,8 +1054,7 @@ return os;
 }
 
 #endif
-# /nirvana/prep_ai/../code/src/core/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef NIRVANA_CONSTANTS_H
 #define NIRVANA_CONSTANTS_H
 
@@ -1180,8 +1067,7 @@ return os;
 #define MCL_UPPERCASE_TOGGLE 5
 
 #endif
-# /nirvana/prep_ai/../code/src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef TOKEN_H
 #define TOKEN_H
 
@@ -1269,8 +1155,7 @@ std::string toString() const;
 };
 
 #endif
-# /nirvana/prep_ai/../code/src/core/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "debugger.h"
 #include <iostream>
 #include <string>
@@ -1388,7 +1273,7 @@ std::cout << "----------------------------------\n\n";
 }
 
 #endif
-# /nirvana/prep_ai/../code/src/core/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/core/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
@@ -1435,7 +1320,7 @@ void interpret(std::unique_ptr<ProgramNode> ast);
 };
 
 #endif
-# /nirvana/prep_ai/../code/src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
 
 #ifndef PARSER_H
 #define PARSER_H
@@ -1476,7 +1361,7 @@ std::unique_ptr<ProgramNode> parseProgram();
 };
 
 #endif
-# /nirvana/prep_ai/../code/src/core/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /nirvana/.prep_ai/../src/core/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "evaluator.h"
 #include <iostream>
 #include <stdexcept>
@@ -2010,8 +1895,7 @@ void Evaluator::interpret(std::unique_ptr<ProgramNode> ast)
 {
 evaluate(ast.get());
 }
-# /nirvana/prep_ai/../code/src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "token.h"
 #include <map>
 #include <string>
@@ -2082,8 +1966,7 @@ str += " at line " + std::to_string(line);
 
 return str;
 }
-# /nirvana/prep_ai/../code/src/core/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-
+# /nirvana/.prep_ai/../src/core/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "lexer.h"
 #include <iostream>
 #include <cctype>

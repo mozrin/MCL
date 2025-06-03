@@ -1,4 +1,13 @@
-I want to modify the main to run more than one file. Specifically ... I want to be able to fun *.nv or test/*.nv
+I want to modify the main to run more than one file. Specifically ... I want to be able 
+to fun *.nv or test/*.nv
+
+I want all of these to work
+
+nirvana
+nirvana bob.nv
+nirvana *.nv
+nirvana test_*.nv
+nirvana tests/*.nv
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!

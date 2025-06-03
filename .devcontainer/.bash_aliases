@@ -36,3 +36,5 @@ version() {
   echo ""
   uname -a
 }
+
+export PATH="$PATH:/nirvana/bin"

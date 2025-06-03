@@ -2,10 +2,10 @@
 
 # Setup Parameters
 PREP_AI_DIR="/nirvana/.prep_ai"
-OUTPUT_FILE="$PREP_AI_DIR/.prep_ai.output.txt"
-PROMPT_FILE="$PREP_AI_DIR/.prep_ai.prompt.txt"
-PROBLEM_FILE="$PREP_AI_DIR/.prep_ai.problem.txt"
-ROOT_FOLDERS="$PREP_AI_DIR/../code"
+OUTPUT_FILE="$PREP_AI_DIR/prep_ai.output.txt"
+PROMPT_FILE="$PREP_AI_DIR/prep_ai.prompt.txt"
+PROBLEM_FILE="$PREP_AI_DIR/prep_ai.problem.txt"
+ROOT_FOLDERS="$PREP_AI_DIR/../src"
 
 # DART EXAMPLE
 # EXCLUDE_DIRS="build|ios|android|.dart_tool|.git|web|macos|windows|linux|packages|images|temp|test|test_driver"

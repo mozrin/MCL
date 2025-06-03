@@ -159,10 +159,11 @@ int main(int argc, char *argv[])
     debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
 
     std::vector<std::string> files_to_run;
+    int overall_exit_code = 0;
 
     if (argc == 1)
     {
-        files_to_run = get_files_from_pattern("bin/*.nv");
+        files_to_run.push_back("main.nv");
     }
     else
     {
@@ -175,28 +176,19 @@ int main(int argc, char *argv[])
 
     if (files_to_run.empty())
     {
-        std::cerr << "No Nirvana (.nv) files found to process based on the provided arguments.\n";
-        if (argc == 1)
-        {
-            std::cerr << "Attempted to find files in 'bin/*.nv'. Ensure files exist in the 'bin/' folder relative to your current directory.\n";
-        }
-        else
-        {
-            std::cerr << "Please check your file paths and patterns. No matching files were found.\n";
-        }
+        std::cerr << "Error: No Nirvana files found to process based on provided arguments." << std::endl;
         return 1;
     }
 
-    int overall_status = 0;
     for (const std::string &filename : files_to_run)
     {
-        int file_status = process_single_file(filename);
-        if (file_status != 0)
+        int file_exit_code = process_single_file(filename);
+        if (file_exit_code != 0)
         {
-            overall_status = file_status;
-            break;
+            overall_exit_code = 1;
         }
     }
 
-    return overall_status;
+    debug_print_message("Nirvana MVI finished.");
+    return overall_exit_code;
 }
