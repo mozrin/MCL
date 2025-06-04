@@ -1,0 +1,37 @@
+public string $str_hello = "hello";
+public string $str_long = "supercalifragilisticexpialidocious";
+public string $str_empty = "";
+
+echo pad($str_hello, 10);
+echo pad($str_hello, 10, "-");
+echo pad($str_hello, 10, MCL_PAD_STRING_DEFAULT);
+echo pad($str_hello, 10, ".-");
+echo pad($str_hello, 10, "|", MCL_PAD_LEFT);
+echo pad($str_hello, 10, "_", MCL_PAD_RIGHT);
+
+echo pad($str_long, 5);
+echo pad($str_long, 30);
+
+echo pad($str_empty, 5);
+echo pad($str_empty, 5, "#");
+echo pad($str_empty, 5, "!", MCL_PAD_LEFT);
+
+public string $long_pad = "abcde";
+echo pad($str_hello, 15, $long_pad);
+echo pad($str_hello, 15, $long_pad, MCL_PAD_LEFT);
+
+echo pad("test", 8);
+echo pad("word", 7, "*");
+echo pad("short", 10, ".");
+echo pad("longstring", 5);
+
+// Test with numbers as length
+echo pad("num", 5, "-", 1); // 1 = MCL_PAD_RIGHT
+echo pad("num", 5, "*", 2); // 2 = MCL_PAD_LEFT
+
+// Error cases (uncomment to test):
+// echo pad("hello"); // Not enough args
+// echo pad("hello", 5.5); // Length not integer
+// echo pad("hello", 10, 123); // Pad string not string
+// echo pad("hello", 10, "-", 3); // Invalid pad type
+// echo pad(123, 10); // First arg not string

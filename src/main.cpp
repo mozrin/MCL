@@ -67,6 +67,10 @@ int process_single_file(const std::string &filename)
     debug_print_message("Starting interpretation for '" + filename + "'...");
     Evaluator evaluator;
 
+    evaluator.registerConstant("MCL_PAD_RIGHT", (long long)MCL_PAD_RIGHT);
+    evaluator.registerConstant("MCL_PAD_LEFT", (long long)MCL_PAD_LEFT);
+    evaluator.registerConstant("MCL_PAD_STRING_DEFAULT", MCL_PAD_STRING_DEFAULT);
+
     evaluator.registerConstant("MCL_UPPERCASE_EVERYTHING", (long long)MCL_UPPERCASE_EVERYTHING);
     evaluator.registerConstant("MCL_UPPERCASE_TITLE", (long long)MCL_UPPERCASE_TITLE);
     evaluator.registerConstant("MCL_UPPERCASE_FIRST", (long long)MCL_UPPERCASE_FIRST);
