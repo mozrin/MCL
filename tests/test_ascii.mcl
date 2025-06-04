@@ -1,0 +1,14 @@
+public string $my_char = "A";
+echo ascii($my_char);
+
+public string $another_char = "z";
+echo ascii($another_char);
+
+public string $numeric_char = "5";
+echo ascii($numeric_char);
+
+public string $newline_char = "\n";
+echo ascii($newline_char);
+
+public string $long_string = "Hello";
+echo ascii($long_string);

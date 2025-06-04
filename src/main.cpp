@@ -88,6 +88,9 @@ int process_single_file(const std::string &filename)
     evaluator.registerConstant("MCL_WRAP_CHARS_HASHES", MCL_WRAP_CHARS_HASHES);
     evaluator.registerConstant("MCL_WRAP_CHARS_PIPES", MCL_WRAP_CHARS_PIPES);
 
+    evaluator.registerConstant("MCL_PI_PRECISION_DEFAULT", (long long)MCL_PI_PRECISION_DEFAULT);
+    evaluator.registerConstant("MCL_PI_PRECISION_DOCTOR_WHO", (long long)MCL_PI_PRECISION_DOCTOR_WHO);
+
     registerAllExtensions(evaluator);
     registerAllHelpers(evaluator);
 

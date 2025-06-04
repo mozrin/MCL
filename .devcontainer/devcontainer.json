@@ -22,7 +22,8 @@
                 "ms-azuretools.vscode-docker",
                 "cweijan.vscode-database-client2",
                 "mikestead.dotenv",
-                "felixfbecker.php-debug"
+                "felixfbecker.php-debug",
+                "vscode.cpptools-extension-pack"
             ]
         }
     },

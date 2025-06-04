@@ -1,0 +1,22 @@
+public integer $ascii_val_A = 65;
+echo character($ascii_val_A);
+
+public integer $ascii_val_z = 122;
+echo character($ascii_val_z);
+
+public integer $ascii_val_5 = 53;
+echo character($ascii_val_5);
+
+public integer $ascii_val_newline = 10;
+echo character($ascii_val_newline);
+
+public number $ascii_val_double_int = 97.0;
+echo character($ascii_val_double_int);
+
+# This should throw an error at runtime: Function 'character': ASCII value 256 is out of valid character range (0-255).
+# public integer $invalid_ascii = 256;
+# echo character($invalid_ascii);
+
+# This should throw an error at runtime: Function 'character': ASCII value -1 is out of valid character range (0-255).
+# public integer $negative_ascii = -1;
+# echo character($negative_ascii);

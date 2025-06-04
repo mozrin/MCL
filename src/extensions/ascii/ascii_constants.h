@@ -1,0 +1,4 @@
+#ifndef MCL_ASCII_CONSTANTS_H
+#define MCL_ASCII_CONSTANTS_H
+
+#endif

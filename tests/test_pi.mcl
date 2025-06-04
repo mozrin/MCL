@@ -1,0 +1,39 @@
+echo "--- Testing pi() function ---";
+
+echo "pi() (default precision)";
+echo pi(); # Should output Pi with 14 decimal places
+
+echo "pi(0) (no decimal places)";
+echo pi(0); # Should output 3
+
+echo "pi(5) (5 decimal places)";
+echo pi(5); # Should output Pi with 5 decimal places
+
+echo "pi(MCL_PI_PRECISION_DEFAULT) (default precision)";
+echo pi(MCL_PI_PRECISION_DEFAULT); # Should output Pi with MCL_PI_PRECISION_DEFAULT decimal places
+
+echo "pi(MCL_PI_PRECISION_DOCTOR_WHO) (DOCTOR WHO EPISODE)";
+echo pi(MCL_PI_PRECISION_DOCTOR_WHO); # Should output Pi with MCL_PI_PRECISION_DOCTOR_WHO decimal places
+
+echo "pi(14) (max precision)";
+echo pi(14); # Should output Pi with 14 decimal places
+
+echo "--- Testing invalid arguments ---";
+
+# Expected to throw an error: significant_places > 14
+# echo "pi(15) (too high)";
+# echo pi(15);
+
+# Expected to throw an error: significant_places < 0
+# echo "pi(-1) (too low)";
+# echo pi(-1);
+
+# Expected to throw an error: wrong argument type (string)
+# echo "pi(\"invalid\") (string argument)";
+# echo pi("invalid");
+
+# Expected to throw an error: wrong argument type (non-integer number)
+# echo "pi(3.14) (non-integer argument)";
+# echo pi(3.14);
+
+echo "--- Pi tests complete ---";

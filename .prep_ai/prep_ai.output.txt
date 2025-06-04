@@ -2,26 +2,10 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-Let's discuss function() 
-I want to implement the idea of a function and a return value of one of our basic types.
-BEFORE you write code ... let's discuss
+We are going to write some extensions. I have added some folders ... I will pick an empty one and we will make it happen.
 
-I see something like this working.
+Start with character(int $ascii): string and ascii(string $character): int
 
-function NameOfFunction(string $parameterOne, integer $ParameterTwo = 1): boolean
-{
-    boolean $results = true;
-
-    if ($parameterOne == "James") {
-        $results = false;
-    }
-
-    return $results;
-}
-
-We may not be ready for this ... but let's talk BEFORE you try to write code.
-
-language reference document for the MCL language so far.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
@@ -32,23 +16,104 @@ DO NOT WRITE CODE UNLESS I ASK!
 ├── core/
 ├── extensions/
 │   ├── abs/
+│   ├── arccosine/
+│   ├── arcsine/
+│   ├── arctangent/
+│   ├── ascii/
+│   ├── base/
 │   ├── ceiling/
+│   ├── character/
 │   ├── contains/
+│   ├── cosine/
+│   ├── cotangent/
+│   ├── count/
+│   ├── date/
+│   ├── empty/
 │   ├── floor/
+│   ├── hash/
+│   ├── length/
+│   ├── logarithm/
+│   ├── lowercase/
 │   ├── max/
 │   ├── min/
+│   ├── modulus/
 │   ├── pad/
+│   ├── pi/
+│   ├── power/
+│   ├── random/
+│   ├── repeat/
+│   ├── replace/
 │   ├── reverse/
+│   ├── round/
+│   ├── sine/
 │   ├── sqrt/
+│   ├── substring/
+│   ├── tangent/
+│   ├── time/
 │   ├── trim/
 │   ├── uppercase/
+│   ├── valid/
 │   └── wrap/
 └── helpers/
     └── system/
 
-17 directories, 0 files
+44 directories, 0 files
 
 --- Baseline File Contents ---
+
+# /mcl/.prep_ai/../src/extensions/arccosine/arccosine.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arccosine/arccosine.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arccosine/arccosine_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/base/base_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/base/base.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/base/base.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/random/random.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/random/random.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/random/random_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/hash/hash.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/hash/hash_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/hash/hash.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/tangent/tangent.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/tangent/tangent_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/tangent/tangent.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/modulus/modulus.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/modulus/modulus_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/modulus/modulus.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/logarithm/logarithm.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/logarithm/logarithm.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/logarithm/logarithm_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/count/count_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/count/count.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/count/count.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/length/length_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/length/length.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/length/length.h # NOT PART OF CODE DON'T ECHO IT EVER #
 
 # /mcl/.prep_ai/../src/extensions/pad/pad.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_PAD_H
@@ -260,6 +325,30 @@ void register_pad_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("pad", mcl_pad);
 }
+# /mcl/.prep_ai/../src/extensions/cotangent/cotangent_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/cotangent/cotangent.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/cotangent/cotangent.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/ascii/ascii.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/ascii/ascii_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/ascii/ascii.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arctangent/arctangent_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arctangent/arctangent.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arctangent/arctangent.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/repeat/repeat_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/repeat/repeat.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/repeat/repeat.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/ceiling/ceiling.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_CEILING_H
 #define EXTENSION_CEILING_H
@@ -305,6 +394,36 @@ void register_ceiling_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("ceiling", mcl_ceiling);
 }
+# /mcl/.prep_ai/../src/extensions/power/power_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/power/power.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/power/power.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/valid/valid.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/valid/valid.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/valid/valid_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/lowercase/lowercase_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/lowercase/lowercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/lowercase/lowercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/round/round.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/round/round_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/round/round.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/empty/empty.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/empty/empty.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/empty/empty_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "uppercase.h"
 #include "../../core/constants.h"
@@ -533,6 +652,18 @@ Value mcl_uppercase(const std::vector<Value> &args);
 void register_uppercase_extension(Evaluator &eval);
 
 #endif
+# /mcl/.prep_ai/../src/extensions/substring/substring.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/substring/substring_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/substring/substring.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/sine/sine.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/sine/sine.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/sine/sine_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "extensions.h"
 
@@ -551,6 +682,12 @@ register_trim_extension(eval);
 register_uppercase_extension(eval);
 register_wrap_extension(eval);
 }
+# /mcl/.prep_ai/../src/extensions/character/character.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/character/character.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/character/character_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
 #define EXTENSION_ABS_H
@@ -618,6 +755,12 @@ eval.registerNativeFunction("abs", mcl_abs);
 void registerAllExtensions(Evaluator &eval);
 
 #endif
+# /mcl/.prep_ai/../src/extensions/time/time.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/time/time.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/time/time_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/trim/trim.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "trim.h"
 #include "../../core/constants.h"
@@ -817,6 +960,18 @@ void register_trim_extension(Evaluator &eval);
 
 #define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
 #define MCL_TRIM_CHARS_SPACE " "
+# /mcl/.prep_ai/../src/extensions/pi/pi_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/pi/pi.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/pi/pi.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/replace/replace_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/replace/replace.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/replace/replace.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/min/min.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_MIN_H
 #define EXTENSION_MIN_H
@@ -1351,6 +1506,24 @@ void register_contains_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("contains", mcl_contains);
 }
+# /mcl/.prep_ai/../src/extensions/date/date.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/date/date.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/date/date_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arcsine/arcsine_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arcsine/arcsine.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/arcsine/arcsine.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/cosine/cosine_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/cosine/cosine.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+
+# /mcl/.prep_ai/../src/extensions/cosine/cosine.h # NOT PART OF CODE DON'T ECHO IT EVER #
+
 # /mcl/.prep_ai/../src/extensions/reverse/reverse.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "reverse.h"
 #include <string>
@@ -2535,7 +2708,7 @@ consume(TokenType::SEMICOLON);
 return std::make_unique<EchoStatement>(std::move(expr));
 }
 
-std::unique_ptr<DeclarationStatement> Parser::parseDeclarationStatement()
+std::unique_ptr<DeclarationStatement> Parser::parsePublicDeclarationStatement()
 {
 consume(TokenType::PUBLIC);
 TokenType declared_type_token = consumeTypeKeyword();
@@ -2551,13 +2724,19 @@ consume(TokenType::SEMICOLON);
 return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
 }
 
-std::unique_ptr<AssignmentStatement> Parser::parseAssignmentStatement()
+std::unique_ptr<DeclarationStatement> Parser::parseLocalDeclarationStatement()
 {
+TokenType declared_type_token = consumeTypeKeyword();
 std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+
+std::unique_ptr<ASTNode> value_expr = nullptr;
+if (currentToken.type == TokenType::EQUAL)
+{
 consume(TokenType::EQUAL);
-std::unique_ptr<ASTNode> value_expr = parseExpression();
+value_expr = parseExpression();
+}
 consume(TokenType::SEMICOLON);
-return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
 }
 
 std::unique_ptr<ReturnStatement> Parser::parseReturnStatement()
@@ -2638,7 +2817,14 @@ return parseEchoStatement();
 }
 else if (currentToken.type == TokenType::PUBLIC)
 {
-return parseDeclarationStatement();
+return parsePublicDeclarationStatement();
+}
+else if (currentToken.type == TokenType::STRING_KEYWORD ||
+currentToken.type == TokenType::INTEGER_KEYWORD ||
+currentToken.type == TokenType::NUMBER_KEYWORD ||
+currentToken.type == TokenType::BOOLEAN_KEYWORD)
+{
+return parseLocalDeclarationStatement();
 }
 else if (currentToken.type == TokenType::RETURN)
 {
@@ -2646,7 +2832,48 @@ return parseReturnStatement();
 }
 else if (currentToken.type == TokenType::IDENTIFIER)
 {
-return parseAssignmentStatement();
+std::string identifier_lexeme = currentToken.lexeme;
+int identifier_line = currentToken.line;
+advance();
+
+if (currentToken.type == TokenType::EQUAL)
+{
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(identifier_lexeme);
+consume(TokenType::EQUAL);
+std::unique_ptr<ASTNode> value_expr = parseExpression();
+consume(TokenType::SEMICOLON);
+return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+}
+else if (currentToken.type == TokenType::LEFT_PAREN)
+{
+std::unique_ptr<VariableExpr> callee_expr = std::make_unique<VariableExpr>(identifier_lexeme);
+
+consume(TokenType::LEFT_PAREN);
+std::vector<std::unique_ptr<ASTNode>> args;
+if (currentToken.type != TokenType::RIGHT_PAREN)
+{
+do
+{
+args.push_back(parseExpression());
+if (currentToken.type == TokenType::COMMA)
+{
+consume(TokenType::COMMA);
+}
+else
+{
+break;
+}
+} while (true);
+}
+consume(TokenType::RIGHT_PAREN);
+consume(TokenType::SEMICOLON);
+return std::make_unique<CallExpr>(std::move(callee_expr), std::move(args));
+}
+else
+{
+throw std::runtime_error("Unexpected token after identifier '" + identifier_lexeme + "'. Expected '=' or '(', but got " +
+currentToken.toString() + " at line " + std::to_string(identifier_line) + ".");
+}
 }
 
 throw std::runtime_error("Unexpected token at the beginning of a statement: " +
@@ -3118,28 +3345,29 @@ void consume(TokenType type);
 TokenType consumeTypeKeyword();
 std::string consumeIdentifier();
 
-std::unique_ptr<ASTNode> parseTopLevelStatement();
-std::unique_ptr<ASTNode> parseStatement();
-std::unique_ptr<DeclarationStatement> parseDeclarationStatement();
-std::unique_ptr<AssignmentStatement> parseAssignmentStatement();
+std::unique_ptr<ASTNode> parsePrimaryExpression();
+std::unique_ptr<ASTNode> parseCall();
+std::unique_ptr<ASTNode> parseUnary();
+std::unique_ptr<ASTNode> parseFactor();
+std::unique_ptr<ASTNode> parseTerm();
+std::unique_ptr<ASTNode> parseComparison();
+std::unique_ptr<ASTNode> parseEquality();
+std::unique_ptr<ASTNode> parseBitwiseOr();
+std::unique_ptr<ASTNode> parseLogicalAnd();
+std::unique_ptr<ASTNode> parseLogicalOr();
+std::unique_ptr<ASTNode> parseConcatenation();
+std::unique_ptr<ASTNode> parseExpression();
+
 std::unique_ptr<EchoStatement> parseEchoStatement();
+std::unique_ptr<DeclarationStatement> parsePublicDeclarationStatement();
+std::unique_ptr<DeclarationStatement> parseLocalDeclarationStatement();
 std::unique_ptr<ReturnStatement> parseReturnStatement();
 std::unique_ptr<BlockStatement> parseBlock();
-std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
 std::vector<ParameterDeclaration> parseParameterList();
+std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
 
-std::unique_ptr<ASTNode> parseExpression();
-std::unique_ptr<ASTNode> parseLogicalOr();
-std::unique_ptr<ASTNode> parseLogicalAnd();
-std::unique_ptr<ASTNode> parseBitwiseOr();
-std::unique_ptr<ASTNode> parseEquality();
-std::unique_ptr<ASTNode> parseComparison();
-std::unique_ptr<ASTNode> parseTerm();
-std::unique_ptr<ASTNode> parseFactor();
-std::unique_ptr<ASTNode> parseUnary();
-std::unique_ptr<ASTNode> parseCall();
-std::unique_ptr<ASTNode> parseConcatenation();
-std::unique_ptr<ASTNode> parsePrimaryExpression();
+std::unique_ptr<ASTNode> parseStatement();
+std::unique_ptr<ASTNode> parseTopLevelStatement();
 
 public:
 Parser(Lexer &lexer);

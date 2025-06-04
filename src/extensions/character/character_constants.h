@@ -1,0 +1,4 @@
+#ifndef MCL_CHARACTER_CONSTANTS_H
+#define MCL_CHARACTER_CONSTANTS_H
+
+#endif
