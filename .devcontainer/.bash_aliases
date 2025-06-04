@@ -37,4 +37,4 @@ version() {
   uname -a
 }
 
-export PATH="$PATH:/mlc/bin"
+export PATH="$PATH:/mcl/bin"
