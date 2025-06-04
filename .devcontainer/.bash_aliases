@@ -1,3 +1,35 @@
+# Project Specific Functions
+
+make-extension() {
+  if [ -z "$1" ]; then
+    echo "Usage: make-extension <extension> [<base_folder>]"
+    return 1
+  fi
+
+  local ext="$1"
+  local base_folder="${2:-/mcl/src/extensions}"
+  local extension_dir="${base_folder}/${ext}"
+
+  mkdir -p "$extension_dir" || {
+    echo "Failed to create directory: $extension_dir"
+    return 1
+  }
+
+  touch "${extension_dir}/${ext}.cpp"
+  touch "${extension_dir}/${ext}.h"
+  touch "${extension_dir}/${ext}_constants.h"
+  touch "${extension_dir}/${ext}.md"
+
+  local tests_dir
+  tests_dir="$(dirname "$(dirname "$base_folder")")/tests"
+  mkdir -p "$tests_dir" || {
+    echo "Failed to create tests directory: $tests_dir"
+    return 1
+  }
+  touch "${tests_dir}/test_extension_${ext}.mcl"
+}
+
+
 # Create Helper Functions
 
 toggle_xdebug() {

@@ -1,0 +1,15 @@
+public integer $int_a = 10;
+public integer $int_b = 20;
+public number $num_c = 15.5;
+public number $num_d = 20.0;
+public integer $int_neg_a = -5;
+public integer $int_neg_b = -10;
+public number $num_neg_c = -2.5;
+
+echo max($int_a, $int_b);
+echo max($num_c, $num_d);
+echo max($int_a, $num_c);
+echo max($int_a, $int_b, $num_c, $num_d);
+echo max($int_neg_a, $int_neg_b);
+echo max($int_neg_a, $num_neg_c);
+echo max(7);
