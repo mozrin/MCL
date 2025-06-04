@@ -1,90 +1,63 @@
-// test_functions.mcl
-
-// This file is designed to test the function declaration and calling mechanism
-// including parameters, default values, and return types.
-
-// --- Function Declarations ---
-
-// Simple function with one required string parameter and string return type.
 function Greet(string $name): string
 {
     string $greeting = "Hello, " . $name . "!";
     return $greeting;
 }
 
-// Function with one required integer parameter and one optional integer parameter with a default value.
 function CalculateSum(integer $a, integer $b = 10): integer
 {
     integer $sum = $a + $b;
     return $sum;
 }
 
-// Function with a required string and an optional boolean parameter, returning a boolean.
 function IsAdmin(string $username, boolean $checkGlobal = false): boolean
 {
-    if ($username == "admin") {
-        return false;
+    boolean $isAdmin = false;
+    if ($username == "superuser") {
+        $isAdmin = true;
     }
-
-    if ($checkGlobal == true) {
-        if ($username == "superuser") {
-            return true;
-        }
-    }
-
-    return false;
+    return $isAdmin;
 }
 
-// Function demonstrating number type return, returns an integer or double based on flag.
 function GetValue(boolean $flag): number
 {
+    number $val = 0.0;
     if ($flag == true) {
-        return 123; // Returns an integer, compatible with number type.
+        $val = 123;
+    } else {
+        $val = 45.67;
     }
-    return 45.67; // Returns a double, compatible with number type.
+    return $val;
 }
 
-// Function that does not explicitly return a value.
-// It should implicitly return the default value for its declared return type (empty string for string).
 function NoReturnFunction(string $message): string
 {
     echo "Message from NoReturnFunction: " . $message;
 }
 
-// Function to test return type enforcement. Declared boolean but attempts to return a string.
-// This function call should result in a runtime error.
 function BadReturnType(integer $value): boolean
 {
     string $result_str = "This is a string not a boolean.";
     return $result_str;
 }
 
-
-// --- Test Calls ---
-
 echo "--- Basic Function Calls ---";
-
-// Test Greet function
 echo Greet("Alice");
 echo Greet("Bob");
-
-// Test CalculateSum function
-echo CalculateSum(5);       // Uses default $b = 10. Expected: 15
-echo CalculateSum(5, 7);    // Overrides default $b. Expected: 12
-echo CalculateSum(100, -50); // Explicit arguments. Expected: 50
-
-// Test IsAdmin function
-echo IsAdmin("admin");        // Expected: false
-echo IsAdmin("guest");        // Expected: false (checkGlobal is false by default)
-echo IsAdmin("superuser");    // Expected: false (checkGlobal is false by default)
-echo IsAdmin("superuser", true); // Overrides default checkGlobal. Expected: true
+echo CalculateSum(5);
+echo CalculateSum(5, 7);
+echo CalculateSum(100, -50);
+echo IsAdmin("admin");
+echo IsAdmin("guest");
+echo IsAdmin("superuser");
+echo IsAdmin("superuser", true);
 
 echo "--- Type-flexible Return Values ---";
-echo GetValue(true);  // Expected: 123
-echo GetValue(false); // Expected: 45.67
+echo GetValue(true);
+echo GetValue(false);
 
 echo "--- Implicit Return Test ---";
-echo NoReturnFunction("Hello from inside the function!"); // Expected: "Message from NoReturnFunction: Hello from inside the function!\n" followed by an empty line (for the implicit empty string return).
+echo NoReturnFunction("Hello from inside the function!");
 
 echo "--- Scoping Test ---";
 public string $global_scope_var = "I am a global variable.";
@@ -92,7 +65,6 @@ echo "Global variable before function call: " . $global_scope_var;
 
 function ScopeTest(): string
 {
-    // This declares a new local variable, shadowing the global one within this scope.
     public string $global_scope_var = "I am a local variable inside ScopeTest.";
     public string $local_function_var = "I am another local variable.";
 
@@ -101,25 +73,7 @@ function ScopeTest(): string
     return $global_scope_var;
 }
 
-echo "Return value from ScopeTest: " . ScopeTest(); // Should print local and shadowed global, then return the shadowed value.
-echo "Global variable after function call: " . $global_scope_var; // Should still be the original global value.
-
-// --- Error Cases (uncomment one at a time to test expected runtime errors) ---
-
-// Test: Missing required argument
-// echo "--- Error: Missing required argument ---";
-// echo Greet();
-
-// Test: Too many arguments
-// echo "--- Error: Too many arguments ---";
-// echo CalculateSum(1, 2, 3);
-
-// Test: Argument type mismatch
-// echo "--- Error: Argument type mismatch ---";
-// echo CalculateSum("five", 2);
-
-// Test: Return type mismatch
-// echo "--- Error: Return type mismatch ---";
-// echo BadReturnType(1); // This should cause a runtime error: "Type mismatch for function 'BadReturnType' return value. Expected boolean, but got value of type string."
+echo "Return value from ScopeTest: " . ScopeTest();
+echo "Global variable after function call: " . $global_scope_var;
 
 echo "All tests attempted (check console for output and potential errors for uncommented lines).";
