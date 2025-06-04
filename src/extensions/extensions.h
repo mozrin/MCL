@@ -5,6 +5,7 @@
 
 #include "abs/abs.h"
 #include "ceiling/ceiling.h"
+#include "contains/contains.h"
 #include "floor/floor.h"
 #include "max/max.h"
 #include "min/min.h"

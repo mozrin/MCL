@@ -4,6 +4,7 @@ void registerAllExtensions(Evaluator &eval)
 {
     register_abs_extension(eval);
     register_ceiling_extension(eval);
+    register_contains_extension(eval);
     register_floor_extension(eval);
     register_max_extension(eval);
     register_min_extension(eval);

@@ -1,0 +1,28 @@
+public string $str1 = "hello world";
+public string $str2 = "programming";
+public string $str3 = "apple";
+public string $str4 = "banana";
+
+echo contains($str1, "world");
+echo contains($str2, "gram");
+echo contains($str3, "orange");
+echo contains($str1, "Hello");
+echo contains($str4, "ana");
+echo contains($str4, "nanana");
+echo contains("test", "test");
+echo contains("abc", "");
+echo contains("", "a");
+echo contains("", "");
+
+public string $sentence = "The quick brown fox jumps over the lazy dog.";
+public string $word1 = "fox";
+public string $word2 = "cat";
+
+echo contains($sentence, $word1);
+echo contains($sentence, $word2);
+
+// Error cases (uncomment to test):
+// echo contains("single");
+// echo contains();
+// echo contains("string", 123);
+// echo contains(123, "string");
