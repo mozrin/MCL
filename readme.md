@@ -32,18 +32,14 @@ I have decided to delete this section for now ... it is evolving too rapidly to 
 
 ## How to Run
 
-To compile and run MCL, navigate to the project's root directory (e.g., `/nirvana/code/`) in your terminal and use a C++17 compatible compiler (like g++):
-
-```bash
-g++ -std=c++17 -g src/*.cpp -Iinclude -o bin/nirvana
-```
-
-Then, execute the interpreter with the example script:
-
-```bash
-./bin/nirvana bin/main.nv
-```
+- clone this project
+- open in vscode
+- choose Reopen in container (you must have Docker loaded)
+- wait for container to build (longer the first time)
+- press ctrl-shift-b to build the language
+- press ctrl-chift-` to open a terminal
+- type ```mcl tests/*.mcl```
 
 ## Contributing
 
-You are always welcome to ask anything about this project. If I can tell you the answer or help you, I will. Feel free to explore, modify, and extend this project. I would appreciate at the very least a fork if you plan to build upon it!
+You are always welcome to ask anything about this project. I am not really sure how serious I am about this, so starting collaboration with others is not something I am planning at the momment. If you want to work on it, fork me! If I can answer questions for you, I will! Feel free to explore, modify, and extend this project.
