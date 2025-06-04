@@ -12,22 +12,12 @@ function CalculateSum(integer $a, integer $b = 10): integer
 
 function IsAdmin(string $username, boolean $checkGlobal = false): boolean
 {
-    boolean $isAdmin = false;
-    if ($username == "superuser") {
-        $isAdmin = true;
-    }
-    return $isAdmin;
+    return ($username == "superuser");
 }
 
 function GetValue(boolean $flag): number
 {
-    number $val = 0.0;
-    if ($flag == true) {
-        $val = 123;
-    } else {
-        $val = 45.67;
-    }
-    return $val;
+    return 123.45;
 }
 
 function NoReturnFunction(string $message): string
@@ -65,8 +55,8 @@ echo "Global variable before function call: " . $global_scope_var;
 
 function ScopeTest(): string
 {
-    public string $global_scope_var = "I am a local variable inside ScopeTest.";
-    public string $local_function_var = "I am another local variable.";
+    string $global_scope_var = "I am a local variable inside ScopeTest.";
+    string $local_function_var = "I am another local variable.";
 
     echo "Inside ScopeTest - global_scope_var (shadowed): " . $global_scope_var;
     echo "Inside ScopeTest - local_function_var: " . $local_function_var;
