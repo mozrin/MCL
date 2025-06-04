@@ -1,4 +1,4 @@
-# MLC - A Simple Interpreted Language
+# MCL - A Simple Interpreted Language
 
 ## Introduction
 
