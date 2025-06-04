@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <stack>
 #include "ast.h"
 #include "value.h"
 #include <functional>
@@ -12,17 +13,29 @@
 
 using NativeFunction = std::function<Value(const std::vector<Value> &)>;
 
+class FunctionReturnException : public std::runtime_error
+{
+public:
+    Value returnValue;
+    FunctionReturnException(Value val) : std::runtime_error("Function return"), returnValue(std::move(val)) {}
+};
+
 class Evaluator
 {
 private:
-    std::map<std::string, std::pair<Value, DeclaredType>> variables;
+    std::vector<std::map<std::string, std::pair<Value, DeclaredType>>> scopeStack;
     std::map<std::string, NativeFunction> nativeFunctions;
+    std::map<std::string, FunctionDeclaration *> userFunctions;
 
     Value evaluate(ASTNode *node);
     Value evaluateProgramNode(ProgramNode *node);
     Value evaluateDeclarationStatement(DeclarationStatement *node);
     Value evaluateAssignmentStatement(AssignmentStatement *node);
     Value evaluateEchoStatement(EchoStatement *node);
+    Value evaluateReturnStatement(ReturnStatement *node);
+    Value evaluateBlockStatement(BlockStatement *node);
+    Value evaluateFunctionDeclaration(FunctionDeclaration *node);
+
     Value evaluateStringLiteralExpr(StringLiteralExpr *node);
     Value evaluateNumberLiteralExpr(NumberLiteralExpr *node);
     Value evaluateBooleanLiteralExpr(BooleanLiteralExpr *node);
@@ -35,6 +48,12 @@ private:
     Value performBooleanBinaryOp(const Value &left, const Value &right, TokenType op);
     bool convertToBool(const Value &val);
     void enforceType(const std::string &var_name, DeclaredType declared_type, const Value &assigned_value);
+    Value getDefaultValueForType(TokenType type_token);
+
+    void enterScope();
+    void exitScope();
+    std::pair<Value*, DeclaredType*> findVariableInScope(const std::string& name);
+
 
 public:
     Evaluator();

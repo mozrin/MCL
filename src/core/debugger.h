@@ -5,8 +5,6 @@
 #include <memory>
 #include "ast.h"
 
-// To ENABLE debug output, uncomment the line below:
-// #define ENABLE_DEBUG_OUTPUT
 
 #ifdef ENABLE_DEBUG_OUTPUT
 

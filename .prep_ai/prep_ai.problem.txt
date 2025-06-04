@@ -1,6 +1,21 @@
-Write me a full, verbose, complete, detailed, awesome
+Let's discuss function() 
+I want to implement the idea of a function and a return value of one of our basic types.
+BEFORE you write code ... let's discuss
 
-markdown
+I see something like this working.
+
+function NameOfFunction(string $parameterOne, integer $ParameterTwo = 1): boolean
+{
+    boolean $results = true;
+
+    if ($parameterOne == "James") {
+        $results = false;
+    }
+
+    return $results;
+}
+
+We may not be ready for this ... but let's talk BEFORE you try to write code.
 
 language reference document for the MCL language so far.
 

@@ -9,21 +9,21 @@
 bool Evaluator::convertToBool(const Value &val)
 {
     return std::visit([](auto &&arg) -> bool
-                      {
-using T = std::decay_t<decltype(arg)>;
-if constexpr (std::is_same_v<T, std::string>) {
-return !arg.empty();
-} else if constexpr (std::is_same_v<T, long long>) {
-return arg != 0LL;
-} else if constexpr (std::is_same_v<T, double>) {
-return arg != 0.0;
-} else if constexpr (std::is_same_v<T, bool>) {
-return arg;
-} else if constexpr (std::is_same_v<T, std::monostate>) {
-return false;
-} else {
-throw std::runtime_error("Internal error: convertToBool received unsupported type.");
-} }, val);
+    {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::string>) {
+            return !arg.empty();
+        } else if constexpr (std::is_same_v<T, long long>) {
+            return arg != 0LL;
+        } else if constexpr (std::is_same_v<T, double>) {
+            return arg != 0.0;
+        } else if constexpr (std::is_same_v<T, bool>) {
+            return arg;
+        } else if constexpr (std::is_same_v<T, std::monostate>) {
+            return false;
+        } else {
+            throw std::runtime_error("Internal error: convertToBool received unsupported type.");
+        } }, val);
 }
 
 Value Evaluator::performNumericBinaryOp(const Value &left_val, const Value &right_val, TokenType op)
@@ -220,8 +220,53 @@ void Evaluator::enforceType(const std::string &var_name, DeclaredType declared_t
     }
 }
 
+Value Evaluator::getDefaultValueForType(TokenType type_token)
+{
+    switch (type_token)
+    {
+    case TokenType::STRING_KEYWORD:
+        return std::string("");
+    case TokenType::INTEGER_KEYWORD:
+        return 0LL;
+    case TokenType::NUMBER_KEYWORD:
+        return 0.0;
+    case TokenType::BOOLEAN_KEYWORD:
+        return false;
+    default:
+        return std::monostate{};
+    }
+}
+
 Evaluator::Evaluator()
 {
+    enterScope();
+}
+
+void Evaluator::enterScope()
+{
+    scopeStack.emplace_back();
+}
+
+void Evaluator::exitScope()
+{
+    if (scopeStack.empty())
+    {
+        throw std::runtime_error("Internal error: Attempted to exit empty scope stack.");
+    }
+    scopeStack.pop_back();
+}
+
+std::pair<Value *, DeclaredType *> Evaluator::findVariableInScope(const std::string &name)
+{
+    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it)
+    {
+        auto var_it = it->find(name);
+        if (var_it != it->end())
+        {
+            return {&var_it->second.first, &var_it->second.second};
+        }
+    }
+    return {nullptr, nullptr};
 }
 
 void Evaluator::registerNativeFunction(const std::string &name, NativeFunction func)
@@ -231,12 +276,12 @@ void Evaluator::registerNativeFunction(const std::string &name, NativeFunction f
 
 void Evaluator::registerConstant(const std::string &name, Value value)
 {
-    if (variables.count(name))
+    if (findVariableInScope(name).first != nullptr)
     {
         throw std::runtime_error("Internal error: Attempted to re-register existing constant/variable '" + name + "'.");
     }
 
-    variables[name] = {value, valueTypeToDeclaredType(value)};
+    scopeStack.front()[name] = {value, valueTypeToDeclaredType(value)};
 }
 
 Value Evaluator::evaluate(ASTNode *node)
@@ -249,6 +294,18 @@ Value Evaluator::evaluate(ASTNode *node)
     if (auto *prog = dynamic_cast<ProgramNode *>(node))
     {
         return evaluateProgramNode(prog);
+    }
+    else if (auto *funcDecl = dynamic_cast<FunctionDeclaration *>(node))
+    {
+        return evaluateFunctionDeclaration(funcDecl);
+    }
+    else if (auto *block = dynamic_cast<BlockStatement *>(node))
+    {
+        return evaluateBlockStatement(block);
+    }
+    else if (auto *ret = dynamic_cast<ReturnStatement *>(node))
+    {
+        return evaluateReturnStatement(ret);
     }
     else if (auto *decl = dynamic_cast<DeclarationStatement *>(node))
     {
@@ -305,14 +362,50 @@ Value Evaluator::evaluateProgramNode(ProgramNode *node)
     return std::monostate{};
 }
 
+Value Evaluator::evaluateFunctionDeclaration(FunctionDeclaration *node)
+{
+    if (userFunctions.count(node->name) || nativeFunctions.count(node->name))
+    {
+        throw std::runtime_error("Runtime error: Function or native function '" + node->name + "' already declared.");
+    }
+    userFunctions[node->name] = node;
+    return std::monostate{};
+}
+
+Value Evaluator::evaluateBlockStatement(BlockStatement *node)
+{
+    for (const auto &stmt : node->statements)
+    {
+        try
+        {
+            evaluate(stmt.get());
+        }
+        catch (const FunctionReturnException &)
+        {
+            throw;
+        }
+    }
+    return std::monostate{};
+}
+
+Value Evaluator::evaluateReturnStatement(ReturnStatement *node)
+{
+    Value ret_val = std::monostate{};
+    if (node->expression)
+    {
+        ret_val = evaluate(node->expression.get());
+    }
+    throw FunctionReturnException(std::move(ret_val));
+}
+
 Value Evaluator::evaluateDeclarationStatement(DeclarationStatement *node)
 {
     std::string var_name = node->target->name;
     DeclaredType declared_type = tokenTypeToDeclaredType(node->declared_type);
 
-    if (variables.count(var_name))
+    if (scopeStack.back().count(var_name))
     {
-        throw std::runtime_error("Runtime error: Variable '" + var_name + "' already declared.");
+        throw std::runtime_error("Runtime error: Variable '" + var_name + "' already declared in this scope.");
     }
 
     Value initial_value_resolved = std::monostate{};
@@ -320,9 +413,13 @@ Value Evaluator::evaluateDeclarationStatement(DeclarationStatement *node)
     {
         initial_value_resolved = evaluate(node->value.get());
     }
+    else
+    {
+        initial_value_resolved = getDefaultValueForType(node->declared_type);
+    }
 
     enforceType(var_name, declared_type, initial_value_resolved);
-    variables[var_name] = {initial_value_resolved, declared_type};
+    scopeStack.back()[var_name] = {initial_value_resolved, declared_type};
     return initial_value_resolved;
 }
 
@@ -331,16 +428,16 @@ Value Evaluator::evaluateAssignmentStatement(AssignmentStatement *node)
     Value value = evaluate(node->value.get());
     std::string var_name = node->target->name;
 
-    auto it = variables.find(var_name);
-    if (it == variables.end())
+    auto [val_ptr, type_ptr] = findVariableInScope(var_name);
+
+    if (val_ptr == nullptr)
     {
-        variables[var_name] = {value, DeclaredType::ANY};
+        scopeStack.back()[var_name] = {value, DeclaredType::ANY};
     }
     else
     {
-        DeclaredType declared_type = it->second.second;
-        enforceType(var_name, declared_type, value);
-        it->second.first = value;
+        enforceType(var_name, *type_ptr, value);
+        *val_ptr = value;
     }
     return value;
 }
@@ -369,10 +466,10 @@ Value Evaluator::evaluateBooleanLiteralExpr(BooleanLiteralExpr *node)
 
 Value Evaluator::evaluateVariableExpr(VariableExpr *node)
 {
-    auto it = variables.find(node->name);
-    if (it != variables.end())
+    auto [val_ptr, type_ptr] = findVariableInScope(node->name);
+    if (val_ptr != nullptr)
     {
-        return it->second.first;
+        return *val_ptr;
     }
     else
     {
@@ -385,19 +482,70 @@ Value Evaluator::evaluateCallExpr(CallExpr *node)
     if (auto *callee_var = dynamic_cast<VariableExpr *>(node->callee.get()))
     {
         std::string function_name = callee_var->name;
-        auto it = nativeFunctions.find(function_name);
-        if (it == nativeFunctions.end())
+        auto native_it = nativeFunctions.find(function_name);
+        auto user_it = userFunctions.find(function_name);
+
+        if (native_it != nativeFunctions.end())
+        {
+            std::vector<Value> args;
+            for (const auto &arg_node : node->arguments)
+            {
+                args.push_back(evaluate(arg_node.get()));
+            }
+            return native_it->second(args);
+        }
+        else if (user_it != userFunctions.end())
+        {
+            FunctionDeclaration *func_decl = user_it->second;
+            enterScope();
+            Value result_val = std::monostate{};
+
+            try
+            {
+                size_t user_arg_idx = 0;
+                for (const auto& param_decl : func_decl->parameters)
+                {
+                    Value param_val;
+                    if (user_arg_idx < node->arguments.size())
+                    {
+                        param_val = evaluate(node->arguments[user_arg_idx].get());
+                    }
+                    else if (param_decl.default_value)
+                    {
+                        param_val = evaluate(param_decl.default_value.get());
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Runtime error: Missing required argument for parameter '" + param_decl.name + "' in function '" + func_decl->name + "'.");
+                    }
+
+                    enforceType(param_decl.name, tokenTypeToDeclaredType(param_decl.declared_type), param_val);
+                    scopeStack.back()[param_decl.name] = {param_val, tokenTypeToDeclaredType(param_decl.declared_type)};
+                    user_arg_idx++;
+                }
+
+                if (user_arg_idx < node->arguments.size())
+                {
+                    throw std::runtime_error("Runtime error: Too many arguments provided for function '" + func_decl->name + "'. Expected " + std::to_string(func_decl->parameters.size()) + ", but got " + std::to_string(node->arguments.size()) + ".");
+                }
+
+                evaluate(func_decl->body.get());
+
+                result_val = getDefaultValueForType(func_decl->return_type);
+            }
+            catch (const FunctionReturnException &e)
+            {
+                result_val = e.returnValue;
+            }
+
+            enforceType("function '" + func_decl->name + "' return value", tokenTypeToDeclaredType(func_decl->return_type), result_val);
+            exitScope();
+            return result_val;
+        }
+        else
         {
             throw std::runtime_error("Runtime error: Undefined function '" + function_name + "'.");
         }
-
-        std::vector<Value> args;
-        for (const auto &arg_node : node->arguments)
-        {
-            args.push_back(evaluate(arg_node.get()));
-        }
-
-        return it->second(args);
     }
     else
     {
@@ -412,17 +560,17 @@ Value Evaluator::evaluateUnaryOpExpr(UnaryOpExpr *node)
     if (node->op == TokenType::MINUS)
     {
         return std::visit([](auto &&arg) -> Value
-                          {
-using T = std::decay_t<decltype(arg)>;
-if constexpr (std::is_same_v<T, long long>) {
-return -arg;
-} else if constexpr (std::is_same_v<T, double>) {
-return -arg;
-} else if constexpr (std::is_same_v<T, bool>) {
-return static_cast<long long>(arg ? -1 : 0); 
-} else {
-throw std::runtime_error("Type error: Unary '-' operator can only be applied to numbers.");
-} }, right_val);
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, long long>) {
+                return -arg;
+            } else if constexpr (std::is_same_v<T, double>) {
+                return -arg;
+            } else if constexpr (std::is_same_v<T, bool>) {
+                return static_cast<long long>(arg ? -1 : 0);
+            } else {
+                throw std::runtime_error("Type error: Unary '-' operator can only be applied to numbers.");
+            } }, right_val);
     }
     else if (node->op == TokenType::BANG || node->op == TokenType::NOT)
     {
@@ -440,25 +588,25 @@ Value Evaluator::evaluateBinaryOpExpr(BinaryOpExpr *node)
     {
         std::string s_left, s_right;
         std::visit([&](auto &&arg)
-                   {
-using T = std::decay_t<decltype(arg)>;
-if constexpr (std::is_same_v<T, std::string>) {
-s_left = arg;
-} else {
-std::stringstream ss;
-ss << arg;
-s_left = ss.str();
-} }, left_val);
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::string>) {
+                s_left = arg;
+            } else {
+                std::stringstream ss;
+                ss << arg;
+                s_left = ss.str();
+            } }, left_val);
         std::visit([&](auto &&arg)
-                   {
-using T = std::decay_t<decltype(arg)>;
-if constexpr (std::is_same_v<T, std::string>) {
-s_right = arg;
-} else {
-std::stringstream ss;
-ss << arg;
-s_right = ss.str();
-} }, right_val);
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::string>) {
+                s_right = arg;
+            } else {
+                std::stringstream ss;
+                ss << arg;
+                s_right = ss.str();
+            } }, right_val);
         return s_left + s_right;
     }
     else if (node->op == TokenType::PLUS || node->op == TokenType::MINUS ||
@@ -481,40 +629,38 @@ s_right = ss.str();
     {
 
         bool are_equal = std::visit([](auto &&l_arg, auto &&r_arg) -> bool
-                                    {
+        {
 
-using L = std::decay_t<decltype(l_arg)>;
-using R = std::decay_t<decltype(r_arg)>;
+            using L = std::decay_t<decltype(l_arg)>;
+            using R = std::decay_t<decltype(r_arg)>;
 
-if constexpr (std::is_same_v<L, R>) {
-if constexpr (std::is_same_v<L, std::string>) return l_arg == r_arg;
-else if constexpr (std::is_same_v<L, long long>) return l_arg == r_arg;
-else if constexpr (std::is_same_v<L, double>) return std::abs(l_arg - r_arg) < 0.000001; 
-else if constexpr (std::is_same_v<L, bool>) return l_arg == r_arg;
-else if constexpr (std::is_same_v<L, std::monostate>) return true; 
-}
+            if constexpr (std::is_same_v<L, R>) {
+                if constexpr (std::is_same_v<L, std::string>) return l_arg == r_arg;
+                else if constexpr (std::is_same_v<L, long long>) return l_arg == r_arg;
+                else if constexpr (std::is_same_v<L, double>) return std::abs(l_arg - r_arg) < 0.000001;
+                else if constexpr (std::is_same_v<L, bool>) return l_arg == r_arg;
+                else if constexpr (std::is_same_v<L, std::monostate>) return true;
+            }
 
+            else if constexpr (
+                (std::is_same_v<L, long long> || std::is_same_v<L, double> || std::is_same_v<L, bool>) &&
+                (std::is_same_v<R, long long> || std::is_same_v<R, double> || std::is_same_v<R, bool>)
+            ) {
+                double l_double, r_double;
+                if constexpr (std::is_same_v<L, long long>) l_double = static_cast<double>(l_arg);
+                else if constexpr (std::is_same_v<L, double>) l_double = l_arg;
+                else if constexpr (std::is_same_v<L, bool>) l_double = l_arg ? 1.0 : 0.0;
+                else l_double = 0.0;
 
-else if constexpr (
-(std::is_same_v<L, long long> || std::is_same_v<L, double> || std::is_same_v<L, bool>) &&
-(std::is_same_v<R, long long> || std::is_same_v<R, double> || std::is_same_v<R, bool>)
-) {
-double l_double, r_double;
-if constexpr (std::is_same_v<L, long long>) l_double = static_cast<double>(l_arg);
-else if constexpr (std::is_same_v<L, double>) l_double = l_arg;
-else if constexpr (std::is_same_v<L, bool>) l_double = l_arg ? 1.0 : 0.0;
-else l_double = 0.0; 
+                if constexpr (std::is_same_v<R, long long>) r_double = static_cast<double>(r_arg);
+                else if constexpr (std::is_same_v<R, double>) r_double = r_arg;
+                else if constexpr (std::is_same_v<R, bool>) r_double = r_arg ? 1.0 : 0.0;
+                else r_double = 0.0;
 
-if constexpr (std::is_same_v<R, long long>) r_double = static_cast<double>(r_arg);
-else if constexpr (std::is_same_v<R, double>) r_double = r_arg;
-else if constexpr (std::is_same_v<R, bool>) r_double = r_arg ? 1.0 : 0.0;
-else r_double = 0.0; 
+                return std::abs(l_double - r_double) < 0.000001;
+            }
 
-return std::abs(l_double - r_double) < 0.000001;
-}
-
-
-return false; }, left_val, right_val);
+            return false; }, left_val, right_val);
 
         return (node->op == TokenType::EQUAL_EQUAL) ? are_equal : !are_equal;
     }
@@ -597,10 +743,10 @@ Value Evaluator::callNativeFunctionByName(const std::string &name, const std::ve
 
 Value Evaluator::getConstant(const std::string &name)
 {
-    auto it = variables.find(name);
-    if (it == variables.end())
+    auto [val_ptr, type_ptr] = findVariableInScope(name);
+    if (val_ptr == nullptr)
     {
         throw std::runtime_error("Runtime error: Undefined constant '" + name + "'.");
     }
-    return it->second.first;
+    return *val_ptr;
 }

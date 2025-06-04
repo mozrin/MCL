@@ -29,6 +29,33 @@ void Parser::consume(TokenType type)
     }
 }
 
+TokenType Parser::consumeTypeKeyword()
+{
+    TokenType type = currentToken.type;
+    if (type == TokenType::STRING_KEYWORD ||
+        type == TokenType::INTEGER_KEYWORD ||
+        type == TokenType::NUMBER_KEYWORD ||
+        type == TokenType::BOOLEAN_KEYWORD)
+    {
+        advance();
+        return type;
+    }
+    throw std::runtime_error("Expected a type keyword (string, integer, number, boolean), but got " +
+                             currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::string Parser::consumeIdentifier()
+{
+    if (currentToken.type == TokenType::IDENTIFIER)
+    {
+        std::string name = currentToken.lexeme;
+        advance();
+        return name;
+    }
+    throw std::runtime_error("Expected an identifier, but got " +
+                             currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
 std::unique_ptr<ASTNode> Parser::parsePrimaryExpression()
 {
     if (currentToken.type == TokenType::STRING_LITERAL)
@@ -242,55 +269,142 @@ std::unique_ptr<ASTNode> Parser::parseExpression()
     return parseConcatenation();
 }
 
+std::unique_ptr<EchoStatement> Parser::parseEchoStatement()
+{
+    consume(TokenType::ECHO);
+    std::unique_ptr<ASTNode> expr = parseExpression();
+    consume(TokenType::SEMICOLON);
+    return std::make_unique<EchoStatement>(std::move(expr));
+}
+
+std::unique_ptr<DeclarationStatement> Parser::parseDeclarationStatement()
+{
+    consume(TokenType::PUBLIC);
+    TokenType declared_type_token = consumeTypeKeyword();
+    std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+
+    std::unique_ptr<ASTNode> value_expr = nullptr;
+    if (currentToken.type == TokenType::EQUAL)
+    {
+        consume(TokenType::EQUAL);
+        value_expr = parseExpression();
+    }
+    consume(TokenType::SEMICOLON);
+    return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+}
+
+std::unique_ptr<AssignmentStatement> Parser::parseAssignmentStatement()
+{
+    std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+    consume(TokenType::EQUAL);
+    std::unique_ptr<ASTNode> value_expr = parseExpression();
+    consume(TokenType::SEMICOLON);
+    return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+}
+
+std::unique_ptr<ReturnStatement> Parser::parseReturnStatement()
+{
+    consume(TokenType::RETURN);
+    std::unique_ptr<ASTNode> expr = nullptr;
+    if (currentToken.type != TokenType::SEMICOLON)
+    {
+        expr = parseExpression();
+    }
+    consume(TokenType::SEMICOLON);
+    return std::make_unique<ReturnStatement>(std::move(expr));
+}
+
+std::unique_ptr<BlockStatement> Parser::parseBlock()
+{
+    auto block = std::make_unique<BlockStatement>();
+    consume(TokenType::LEFT_BRACE);
+    while (currentToken.type != TokenType::RIGHT_BRACE && currentToken.type != TokenType::EOF_TOKEN)
+    {
+        block->statements.push_back(parseStatement());
+    }
+    consume(TokenType::RIGHT_BRACE);
+    return block;
+}
+
+std::vector<ParameterDeclaration> Parser::parseParameterList()
+{
+    std::vector<ParameterDeclaration> parameters;
+    consume(TokenType::LEFT_PAREN);
+
+    if (currentToken.type != TokenType::RIGHT_PAREN)
+    {
+        do
+        {
+            TokenType param_type = consumeTypeKeyword();
+            std::string param_name = consumeIdentifier();
+            std::unique_ptr<ASTNode> default_value = nullptr;
+
+            if (currentToken.type == TokenType::EQUAL)
+            {
+                consume(TokenType::EQUAL);
+                default_value = parseExpression();
+            }
+            parameters.emplace_back(param_type, param_name, std::move(default_value));
+
+            if (currentToken.type == TokenType::COMMA)
+            {
+                consume(TokenType::COMMA);
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+    }
+    consume(TokenType::RIGHT_PAREN);
+    return parameters;
+}
+
+std::unique_ptr<FunctionDeclaration> Parser::parseFunctionDeclaration()
+{
+    consume(TokenType::FUNCTION);
+    std::string func_name = consumeIdentifier();
+    std::vector<ParameterDeclaration> parameters = parseParameterList();
+    consume(TokenType::COLON);
+    TokenType return_type = consumeTypeKeyword();
+    std::unique_ptr<BlockStatement> body = parseBlock();
+
+    return std::make_unique<FunctionDeclaration>(func_name, std::move(parameters), return_type, std::move(body));
+}
+
 std::unique_ptr<ASTNode> Parser::parseStatement()
 {
     if (currentToken.type == TokenType::ECHO)
     {
-        consume(TokenType::ECHO);
-        std::unique_ptr<ASTNode> expr = parseExpression();
-        consume(TokenType::SEMICOLON);
-        return std::make_unique<EchoStatement>(std::move(expr));
+        return parseEchoStatement();
     }
     else if (currentToken.type == TokenType::PUBLIC)
     {
-        consume(TokenType::PUBLIC);
-        TokenType declared_type_token = currentToken.type;
-
-        if (declared_type_token != TokenType::STRING_KEYWORD &&
-            declared_type_token != TokenType::INTEGER_KEYWORD &&
-            declared_type_token != TokenType::NUMBER_KEYWORD &&
-            declared_type_token != TokenType::BOOLEAN_KEYWORD)
-        {
-            throw std::runtime_error("Expected a type keyword (string, integer, number, boolean) after 'public', but got " +
-                                     currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
-        }
-        consume(declared_type_token);
-
-        std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(currentToken.lexeme);
-        consume(TokenType::IDENTIFIER);
-
-        std::unique_ptr<ASTNode> value_expr = nullptr;
-        if (currentToken.type == TokenType::EQUAL)
-        {
-            consume(TokenType::EQUAL);
-            value_expr = parseExpression();
-        }
-
-        consume(TokenType::SEMICOLON);
-        return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+        return parseDeclarationStatement();
+    }
+    else if (currentToken.type == TokenType::RETURN)
+    {
+        return parseReturnStatement();
     }
     else if (currentToken.type == TokenType::IDENTIFIER)
     {
-        std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(currentToken.lexeme);
-        consume(TokenType::IDENTIFIER);
-        consume(TokenType::EQUAL);
-        std::unique_ptr<ASTNode> value_expr = parseExpression();
-        consume(TokenType::SEMICOLON);
-        return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+        return parseAssignmentStatement();
     }
 
     throw std::runtime_error("Unexpected token at the beginning of a statement: " +
                              currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::unique_ptr<ASTNode> Parser::parseTopLevelStatement()
+{
+    if (currentToken.type == TokenType::FUNCTION)
+    {
+        return parseFunctionDeclaration();
+    }
+    else
+    {
+        return parseStatement();
+    }
 }
 
 std::unique_ptr<ProgramNode> Parser::parseProgram()
@@ -299,7 +413,7 @@ std::unique_ptr<ProgramNode> Parser::parseProgram()
 
     while (currentToken.type != TokenType::EOF_TOKEN)
     {
-        program->statements.push_back(parseStatement());
+        program->statements.push_back(parseTopLevelStatement());
     }
     return program;
 }

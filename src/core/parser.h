@@ -16,8 +16,19 @@ private:
 
     void advance();
     void consume(TokenType type);
+    TokenType consumeTypeKeyword();
+    std::string consumeIdentifier();
 
+    std::unique_ptr<ASTNode> parseTopLevelStatement();
     std::unique_ptr<ASTNode> parseStatement();
+    std::unique_ptr<DeclarationStatement> parseDeclarationStatement();
+    std::unique_ptr<AssignmentStatement> parseAssignmentStatement();
+    std::unique_ptr<EchoStatement> parseEchoStatement();
+    std::unique_ptr<ReturnStatement> parseReturnStatement();
+    std::unique_ptr<BlockStatement> parseBlock();
+    std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
+    std::vector<ParameterDeclaration> parseParameterList();
+
     std::unique_ptr<ASTNode> parseExpression();
     std::unique_ptr<ASTNode> parseLogicalOr();
     std::unique_ptr<ASTNode> parseLogicalAnd();

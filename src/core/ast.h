@@ -91,6 +91,44 @@ struct EchoStatement : public ASTNode
     EchoStatement(std::unique_ptr<ASTNode> expr_to_echo) : expression(std::move(expr_to_echo)) {}
 };
 
+struct ReturnStatement : public ASTNode
+{
+    std::unique_ptr<ASTNode> expression;
+    ReturnStatement(std::unique_ptr<ASTNode> expr) : expression(std::move(expr)) {}
+};
+
+struct BlockStatement : public ASTNode
+{
+    std::vector<std::unique_ptr<ASTNode>> statements;
+    BlockStatement() = default;
+};
+
+struct ParameterDeclaration
+{
+    TokenType declared_type;
+    std::string name;
+    std::unique_ptr<ASTNode> default_value;
+
+    ParameterDeclaration(TokenType type, std::string param_name, std::unique_ptr<ASTNode> def_val = nullptr)
+        : declared_type(type), name(std::move(param_name)), default_value(std::move(def_val)) {}
+    
+    ParameterDeclaration(const ParameterDeclaration&) = delete;
+    ParameterDeclaration& operator=(const ParameterDeclaration&) = delete;
+    ParameterDeclaration(ParameterDeclaration&&) = default;
+    ParameterDeclaration& operator=(ParameterDeclaration&&) = default;
+};
+
+struct FunctionDeclaration : public ASTNode
+{
+    std::string name;
+    std::vector<ParameterDeclaration> parameters;
+    TokenType return_type;
+    std::unique_ptr<BlockStatement> body;
+
+    FunctionDeclaration(std::string func_name, std::vector<ParameterDeclaration>&& params, TokenType ret_type, std::unique_ptr<BlockStatement> func_body)
+        : name(std::move(func_name)), parameters(std::move(params)), return_type(ret_type), body(std::move(func_body)) {}
+};
+
 struct ProgramNode : public ASTNode
 {
     std::vector<std::unique_ptr<ASTNode>> statements;

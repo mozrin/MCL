@@ -15,6 +15,8 @@ enum class TokenType
     EQUAL,
     LEFT_PAREN,
     RIGHT_PAREN,
+    LEFT_BRACE,
+    RIGHT_BRACE,
     PLUS,
     MINUS,
     STAR,
@@ -40,12 +42,15 @@ enum class TokenType
     NOT,
 
     PUBLIC,
+    FUNCTION,
+    RETURN,
     STRING_KEYWORD,
     INTEGER_KEYWORD,
     NUMBER_KEYWORD,
     BOOLEAN_KEYWORD,
 
     COMMA,
+    COLON,
     PIPE,
 
     EOF_TOKEN,

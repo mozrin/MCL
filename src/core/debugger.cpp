@@ -40,6 +40,48 @@ void debug_print_ast_node(const ASTNode *node, int indent)
             debug_print_ast_node(stmt.get(), indent + 1);
         }
     }
+    else if (auto *funcDecl = dynamic_cast<const FunctionDeclaration *>(node))
+    {
+        std::cout << "FunctionDeclaration (Name: " << funcDecl->name
+                  << ", ReturnType: " << Token(funcDecl->return_type, "", 0).toString() << ")\n";
+        printIndent(indent + 1);
+        std::cout << "Parameters (" << funcDecl->parameters.size() << "):\n";
+        for (const auto& param : funcDecl->parameters)
+        {
+            printIndent(indent + 2);
+            std::cout << "Parameter (Type: " << Token(param.declared_type, "", 0).toString() << ", Name: " << param.name << ")\n";
+            if (param.default_value)
+            {
+                printIndent(indent + 3);
+                std::cout << "Default Value:\n";
+                debug_print_ast_node(param.default_value.get(), indent + 4);
+            }
+        }
+        printIndent(indent + 1);
+        std::cout << "Body:\n";
+        debug_print_ast_node(funcDecl->body.get(), indent + 2);
+    }
+    else if (auto *block = dynamic_cast<const BlockStatement *>(node))
+    {
+        std::cout << "BlockStatement (" << block->statements.size() << " statements)\n";
+        for (const auto &stmt : block->statements)
+        {
+            debug_print_ast_node(stmt.get(), indent + 1);
+        }
+    }
+    else if (auto *ret = dynamic_cast<const ReturnStatement *>(node))
+    {
+        std::cout << "ReturnStatement\n";
+        if (ret->expression)
+        {
+            debug_print_ast_node(ret->expression.get(), indent + 1);
+        }
+        else
+        {
+            printIndent(indent + 1);
+            std::cout << "No Return Value\n";
+        }
+    }
     else if (auto *decl = dynamic_cast<const DeclarationStatement *>(node))
     {
         std::cout << "DeclarationStatement (Type: " << Token(decl->declared_type, "", 0).toString() << ", Target: " << decl->target->name << ")\n";

@@ -13,6 +13,8 @@ static const std::map<std::string, TokenType> keywords = {
     {"or", TokenType::OR},
     {"not", TokenType::NOT},
     {"public", TokenType::PUBLIC},
+    {"function", TokenType::FUNCTION},
+    {"return", TokenType::RETURN},
     {"string", TokenType::STRING_KEYWORD},
     {"integer", TokenType::INTEGER_KEYWORD},
     {"number", TokenType::NUMBER_KEYWORD},
@@ -270,6 +272,12 @@ Token Lexer::getNextToken()
     case ')':
         advance();
         return Token(TokenType::RIGHT_PAREN, ")", startLine);
+    case '{':
+        advance();
+        return Token(TokenType::LEFT_BRACE, "{", startLine);
+    case '}':
+        advance();
+        return Token(TokenType::RIGHT_BRACE, "}", startLine);
     case '+':
         advance();
         return Token(TokenType::PLUS, "+", startLine);
@@ -327,6 +335,9 @@ Token Lexer::getNextToken()
     case ',':
         advance();
         return Token(TokenType::COMMA, ",", startLine);
+    case ':':
+        advance();
+        return Token(TokenType::COLON, ":", startLine);
     case '|':
         advance();
         return Token(TokenType::PIPE, "|", startLine);
