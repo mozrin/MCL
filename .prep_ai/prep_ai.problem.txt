@@ -1,22 +1,5 @@
-We are going to create a src/helpers/ system
-
-I would like to do this through a configuration syntax
-and not really write a lot of code to support this feature
-
-We are going to create the ability for people to create
-helpers in the future. The system helpers will come first.
-
-I need a way to defined a helper function ... I am going to start
-them all with name- and them follow up with the system extension
-that they modify.
-
-left-trim(<string_to_trim>, [<chars_to_trim>])
-
-The chars_to_trim should default to the MCL_TRIM_CHARS_DEFAULT if
-not specificied by the user.
-
-Let's make this easy to configure. Thoughtsand discussion before
-we write any code.
+I want to change the internal name of everything from nirvana to MLC and the extension for language files from .nv to .MLC
+give me a list of everything taht needs to be changed 
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!

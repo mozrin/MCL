@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build nirvana",
+            "label": "build mcl",
             "type": "shell",
-            "command": "g++ -std=c++17 -g $(find src -name '*.cpp') -Isrc -o bin/nirvana",
+            "command": "g++ -std=c++17 -g $(find src -name '*.cpp') -Isrc -o bin/mcl",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -18,9 +18,9 @@
             ]
         },
         {
-            "label": "run nirvana",
+            "label": "run mcl",
             "type": "shell",
-            "command": "./bin/nirvana",
+            "command": "./bin/mcl",
             "args": [
                 "bin/*.nv"
             ],

@@ -1,4 +1,4 @@
-// /nirvana/prep_ai/../code/bin/main.nv
+// /mcl/prep_ai/../code/bin/main.nv
 echo "--- Initial setup and String Concatenation ---";
 
 $my_variable = "Hello from main.nv!";

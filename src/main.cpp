@@ -166,7 +166,7 @@ std::vector<std::string> get_files_from_pattern(const std::string &pattern_arg)
 
 int main(int argc, char *argv[])
 {
-    debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
+    debug_print_message("MCL starting (Lexer + Parser + Evaluator)...");
 
     std::vector<std::string> files_to_run;
     int overall_exit_code = 0;
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
     if (files_to_run.empty())
     {
-        std::cerr << "Error: No Nirvana files found to process based on provided arguments." << std::endl;
+        std::cerr << "Error: No MCL files found to process based on provided arguments." << std::endl;
         return 1;
     }
 
@@ -199,6 +199,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    debug_print_message("Nirvana MVI finished.");
+    debug_print_message("MCL finished.");
     return overall_exit_code;
 }

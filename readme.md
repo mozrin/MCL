@@ -1,8 +1,8 @@
-# Nirvana MVI - A Simple Interpreted Language
+# MCL - A Simple Interpreted Language
 
 ## Introduction
 
-Nirvana MVI (Minimum Viable Interpreter) is a small, custom-built interpreted language implemented in C++. This project serves as a foundational exploration into the core components of an interpreted language, from raw source code to executed output.
+MCL (Minimum Viable Interpreter) is a small, custom-built interpreted language implemented in C++. This project serves as a foundational exploration into the core components of an interpreted language, from raw source code to executed output.
 
 ## Motivation
 
@@ -28,7 +28,7 @@ You can learn more about DevLite Devcontainers and how to integrate them into yo
 
 ## Current Features
 
-Nirvana MVI is currently capable of parsing and executing a subset of common programming constructs. It processes source code in several distinct stages:
+MCL is currently capable of parsing and executing a subset of common programming constructs. It processes source code in several distinct stages:
 
 ### 1. Lexical Analysis (Lexer)
 
@@ -70,7 +70,7 @@ The Evaluator is the interpreter's runtime component. It traverses the AST and e
 
 ## How to Run
 
-To compile and run Nirvana MVI, navigate to the project's root directory (e.g., `/nirvana/code/`) in your terminal and use a C++17 compatible compiler (like g++):
+To compile and run MCL, navigate to the project's root directory (e.g., `/nirvana/code/`) in your terminal and use a C++17 compatible compiler (like g++):
 
 ```bash
 g++ -std=c++17 -g src/*.cpp -Iinclude -o bin/nirvana
