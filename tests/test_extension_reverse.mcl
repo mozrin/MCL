@@ -1,0 +1,11 @@
+public string $word1 = "hello";
+public string $word2 = "world";
+public string $phrase = "madam";
+public string $infix = "I'm";
+public string $suffix = "adam";
+
+echo reverse($word1);
+echo reverse($word2, "!");
+echo reverse($phrase, $infix, $suffix);
+echo reverse("racecar");
+echo reverse("");
