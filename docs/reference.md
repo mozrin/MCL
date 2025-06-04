@@ -348,13 +348,7 @@ MCL provides a rich set of built-in functions, known as "extensions," to perform
 *   **Errors**: Throws a runtime error if `$value` is not a `number` type.
 *   **Example**: `echo ceiling(3.14); // Output: 4`
 
-### 7.3. `echo(...$values)`
-
-*   **Description**: Prints all provided arguments to the standard output, separated by spaces, followed by a newline. This is a function, distinct from the `echo` statement.
-*   **Arguments**: `...$values` (any number of arguments of any type).
-*   **Returns**: `null`.
-*   **Errors**: Throws a runtime error if no arguments are provided.
-*   **Example**: `echo("Hello", "World", 123, true); // Output: Hello World 123 true`
+### 7.3. `echo(...$values) REMOVED`
 
 ### 7.4. `floor(number $value)`
 
