@@ -308,15 +308,6 @@ std::unique_ptr<DeclarationStatement> Parser::parseLocalDeclarationStatement()
     return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
 }
 
-std::unique_ptr<AssignmentStatement> Parser::parseAssignmentStatement()
-{
-    std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
-    consume(TokenType::EQUAL);
-    std::unique_ptr<ASTNode> value_expr = parseExpression();
-    consume(TokenType::SEMICOLON);
-    return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
-}
-
 std::unique_ptr<ReturnStatement> Parser::parseReturnStatement()
 {
     consume(TokenType::RETURN);
@@ -410,7 +401,48 @@ std::unique_ptr<ASTNode> Parser::parseStatement()
     }
     else if (currentToken.type == TokenType::IDENTIFIER)
     {
-        return parseAssignmentStatement();
+        std::string identifier_lexeme = currentToken.lexeme;
+        int identifier_line = currentToken.line;
+        advance();
+
+        if (currentToken.type == TokenType::EQUAL)
+        {
+            std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(identifier_lexeme);
+            consume(TokenType::EQUAL);
+            std::unique_ptr<ASTNode> value_expr = parseExpression();
+            consume(TokenType::SEMICOLON);
+            return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+        }
+        else if (currentToken.type == TokenType::LEFT_PAREN)
+        {
+            std::unique_ptr<VariableExpr> callee_expr = std::make_unique<VariableExpr>(identifier_lexeme);
+
+            consume(TokenType::LEFT_PAREN);
+            std::vector<std::unique_ptr<ASTNode>> args;
+            if (currentToken.type != TokenType::RIGHT_PAREN)
+            {
+                do
+                {
+                    args.push_back(parseExpression());
+                    if (currentToken.type == TokenType::COMMA)
+                    {
+                        consume(TokenType::COMMA);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                } while (true);
+            }
+            consume(TokenType::RIGHT_PAREN);
+            consume(TokenType::SEMICOLON);
+            return std::make_unique<CallExpr>(std::move(callee_expr), std::move(args));
+        }
+        else
+        {
+            throw std::runtime_error("Unexpected token after identifier '" + identifier_lexeme + "'. Expected '=' or '(', but got " +
+                                     currentToken.toString() + " at line " + std::to_string(identifier_line) + ".");
+        }
     }
 
     throw std::runtime_error("Unexpected token at the beginning of a statement: " +

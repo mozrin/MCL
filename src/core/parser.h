@@ -35,7 +35,6 @@ private:
     std::unique_ptr<EchoStatement> parseEchoStatement();
     std::unique_ptr<DeclarationStatement> parsePublicDeclarationStatement();
     std::unique_ptr<DeclarationStatement> parseLocalDeclarationStatement();
-    std::unique_ptr<AssignmentStatement> parseAssignmentStatement();
     std::unique_ptr<ReturnStatement> parseReturnStatement();
     std::unique_ptr<BlockStatement> parseBlock();
     std::vector<ParameterDeclaration> parseParameterList();
