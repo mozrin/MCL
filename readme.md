@@ -2,11 +2,7 @@
 
 ## Introduction
 
-<<<<<<< HEAD
 MCL is a small, custom-built interpreted language implemented in C++. This project serves as a foundational exploration into the core components of an interpreted language, from raw source code to executed output. The current release development effort is called nirvana.
-=======
-MCL (Minimum Viable Interpreter) is a small, custom-built interpreted language implemented in C++. This project serves as a foundational exploration into the core components of an interpreted language, from raw source code to executed output.
->>>>>>> origin/mozrin/changing-the-name
 
 ## Motivation
 
@@ -32,7 +28,6 @@ You can learn more about DevLite Devcontainers and how to integrate them into yo
 
 ## Current Features
 
-<<<<<<< HEAD
 I have decided to delete this section for now ... it is evolving too rapidly to keep up with the changes here.
 
 ## How to Run
@@ -44,61 +39,6 @@ I have decided to delete this section for now ... it is evolving too rapidly to 
 - press ctrl-shift-b to build the language
 - press ctrl-chift-` to open a terminal
 - type ```mcl tests/*.mcl```
-=======
-MCL is currently capable of parsing and executing a subset of common programming constructs. It processes source code in several distinct stages:
-
-### 1. Lexical Analysis (Lexer)
-
-The Lexer is responsible for converting the raw source code string into a stream of meaningful tokens. It handles:
-
-- **Token Types:** Identifiers (variables), string literals, number literals, boolean literals (`true`, `false`), and various operators and punctuation (semicolon, dot, equal, parentheses, arithmetic, comparison, logical, unary).
-- **Keywords:** Recognizes reserved words like `echo`, `and`, `or`, `not`.
-- **Whitespace and Comments:** Skips over spaces, tabs, newlines, and supports both single-line (`//`) and multi-line (`/* ... */`) comments.
-- **Error Reporting:** Detects and reports unknown characters and unterminated string literals, including the line number where the error occurred.
-
-### 2. Syntactic Analysis (Parser)
-
-The Parser takes the stream of tokens from the Lexer and constructs an Abstract Syntax Tree (AST). This tree is a hierarchical representation of the program's structure, reflecting the grammatical rules of the language. It enforces:
-
-- **Statements:** Currently supports variable assignment (`$variable = expression;`) and `echo` statements (`echo expression;`).
-- **Expressions:** Handles complex expressions involving:
-  - **Primary Expressions:** String literals, number literals, boolean literals, variables, and parenthesized expressions for grouping.
-  - **Unary Operators:** Logical negation (`not`, `!`) and numeric negation (`-`).
-  - **Arithmetic Operations:** Multiplication (`*`), division (`/`), addition (`+`), subtraction (`-`), with standard operator precedence.
-  - **Comparison Operators:** Greater than (`>`), greater than or equal to (`>=`), less than (`<`), less or equal to (`<=`), equality (`==`), inequality (`!=`).
-  - **Logical Operators:** Logical AND (`and`), logical OR (`or`).
-  - **String Concatenation:** Uses the dot operator (`.`) for joining strings and converting other types to strings for concatenation.
-- **Error Reporting:** Identifies syntax errors (e.g., missing semicolons, unexpected tokens) and reports them along with the line number.
-
-### 3. Abstract Syntax Tree (AST)
-
-The AST is the in-memory representation of the parsed program. It consists of various node types, each representing a specific language construct (e.g., `ProgramNode`, `AssignmentStatement`, `EchoStatement`, `BinaryOpExpr`, `StringLiteralExpr`, `NumberLiteralExpr`, `BooleanLiteralExpr`, `VariableExpr`, `UnaryOpExpr`). This structured representation is then traversed by the evaluator.
-
-### 4. Evaluation (Evaluator)
-
-The Evaluator is the interpreter's runtime component. It traverses the AST and executes the program logic:
-
-- **Variable Management:** Maintains a symbol table (`std::map<std::string, Value>`) to store and retrieve variable values.
-- **Expression Evaluation:** Performs arithmetic, logical, comparison, and string operations based on the AST structure.
-- **Type System:** Employs a `std::variant` (`Value`) to dynamically handle different data types (string, double, bool, monostate for null/void).
-- **Type Coercion:** Supports automatic type conversion for string concatenation (e.g., `123 . "hello"` becomes `"123hello"`).
-- **Runtime Errors:** Catches and reports runtime issues such as undefined variables, division by zero, or type mismatches for specific operations.
-- **Output:** Processes `echo` statements to print expression results to standard output.
-
-## How to Run
-
-To compile and run MCL, navigate to the project's root directory (e.g., `/nirvana/code/`) in your terminal and use a C++17 compatible compiler (like g++):
-
-```bash
-g++ -std=c++17 -g src/*.cpp -Iinclude -o bin/nirvana
-```
-
-Then, execute the interpreter with the example script:
-
-```bash
-./bin/nirvana bin/main.nv
-```
->>>>>>> origin/mozrin/changing-the-name
 
 ## Contributing
 
