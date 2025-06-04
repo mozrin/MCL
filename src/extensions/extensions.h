@@ -4,7 +4,8 @@
 #include "../core/evaluator.h"
 
 #include "abs/abs.h"
-#include "echo/echo.h"
+#include "ceiling/ceiling.h"
+#include "floor/floor.h"
 #include "sqrt/sqrt.h"
 #include "trim/trim.h"
 #include "uppercase/uppercase.h"
