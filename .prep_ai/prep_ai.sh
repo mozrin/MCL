@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setup Parameters
-PREP_AI_DIR="/nirvana/.prep_ai"
+PREP_AI_DIR="/mcl/.prep_ai"
 OUTPUT_FILE="$PREP_AI_DIR/prep_ai.output.txt"
 PROMPT_FILE="$PREP_AI_DIR/prep_ai.prompt.txt"
 PROBLEM_FILE="$PREP_AI_DIR/prep_ai.problem.txt"
