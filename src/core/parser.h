@@ -19,28 +19,30 @@ private:
     TokenType consumeTypeKeyword();
     std::string consumeIdentifier();
 
-    std::unique_ptr<ASTNode> parseTopLevelStatement();
-    std::unique_ptr<ASTNode> parseStatement();
-    std::unique_ptr<DeclarationStatement> parseDeclarationStatement();
-    std::unique_ptr<AssignmentStatement> parseAssignmentStatement();
+    std::unique_ptr<ASTNode> parsePrimaryExpression();
+    std::unique_ptr<ASTNode> parseCall();
+    std::unique_ptr<ASTNode> parseUnary();
+    std::unique_ptr<ASTNode> parseFactor();
+    std::unique_ptr<ASTNode> parseTerm();
+    std::unique_ptr<ASTNode> parseComparison();
+    std::unique_ptr<ASTNode> parseEquality();
+    std::unique_ptr<ASTNode> parseBitwiseOr();
+    std::unique_ptr<ASTNode> parseLogicalAnd();
+    std::unique_ptr<ASTNode> parseLogicalOr();
+    std::unique_ptr<ASTNode> parseConcatenation();
+    std::unique_ptr<ASTNode> parseExpression();
+
     std::unique_ptr<EchoStatement> parseEchoStatement();
+    std::unique_ptr<DeclarationStatement> parsePublicDeclarationStatement();
+    std::unique_ptr<DeclarationStatement> parseLocalDeclarationStatement();
+    std::unique_ptr<AssignmentStatement> parseAssignmentStatement();
     std::unique_ptr<ReturnStatement> parseReturnStatement();
     std::unique_ptr<BlockStatement> parseBlock();
-    std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
     std::vector<ParameterDeclaration> parseParameterList();
+    std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
 
-    std::unique_ptr<ASTNode> parseExpression();
-    std::unique_ptr<ASTNode> parseLogicalOr();
-    std::unique_ptr<ASTNode> parseLogicalAnd();
-    std::unique_ptr<ASTNode> parseBitwiseOr();
-    std::unique_ptr<ASTNode> parseEquality();
-    std::unique_ptr<ASTNode> parseComparison();
-    std::unique_ptr<ASTNode> parseTerm();
-    std::unique_ptr<ASTNode> parseFactor();
-    std::unique_ptr<ASTNode> parseUnary();
-    std::unique_ptr<ASTNode> parseCall();
-    std::unique_ptr<ASTNode> parseConcatenation();
-    std::unique_ptr<ASTNode> parsePrimaryExpression();
+    std::unique_ptr<ASTNode> parseStatement();
+    std::unique_ptr<ASTNode> parseTopLevelStatement();
 
 public:
     Parser(Lexer &lexer);

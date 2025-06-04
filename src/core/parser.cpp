@@ -277,9 +277,24 @@ std::unique_ptr<EchoStatement> Parser::parseEchoStatement()
     return std::make_unique<EchoStatement>(std::move(expr));
 }
 
-std::unique_ptr<DeclarationStatement> Parser::parseDeclarationStatement()
+std::unique_ptr<DeclarationStatement> Parser::parsePublicDeclarationStatement()
 {
     consume(TokenType::PUBLIC);
+    TokenType declared_type_token = consumeTypeKeyword();
+    std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+
+    std::unique_ptr<ASTNode> value_expr = nullptr;
+    if (currentToken.type == TokenType::EQUAL)
+    {
+        consume(TokenType::EQUAL);
+        value_expr = parseExpression();
+    }
+    consume(TokenType::SEMICOLON);
+    return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+}
+
+std::unique_ptr<DeclarationStatement> Parser::parseLocalDeclarationStatement()
+{
     TokenType declared_type_token = consumeTypeKeyword();
     std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
 
@@ -380,7 +395,14 @@ std::unique_ptr<ASTNode> Parser::parseStatement()
     }
     else if (currentToken.type == TokenType::PUBLIC)
     {
-        return parseDeclarationStatement();
+        return parsePublicDeclarationStatement();
+    }
+    else if (currentToken.type == TokenType::STRING_KEYWORD ||
+             currentToken.type == TokenType::INTEGER_KEYWORD ||
+             currentToken.type == TokenType::NUMBER_KEYWORD ||
+             currentToken.type == TokenType::BOOLEAN_KEYWORD)
+    {
+        return parseLocalDeclarationStatement();
     }
     else if (currentToken.type == TokenType::RETURN)
     {
