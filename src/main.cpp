@@ -80,6 +80,10 @@ int process_single_file(const std::string &filename)
     evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
     evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
 
+    evaluator.registerConstant("MCL_WRAP_CHARS_DEFAULT", MCL_WRAP_CHARS_DEFAULT);
+    evaluator.registerConstant("MCL_WRAP_CHARS_HASHES", MCL_WRAP_CHARS_HASHES);
+    evaluator.registerConstant("MCL_WRAP_CHARS_PIPES", MCL_WRAP_CHARS_PIPES);
+
     registerAllExtensions(evaluator);
     registerAllHelpers(evaluator);
 

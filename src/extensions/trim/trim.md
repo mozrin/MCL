@@ -88,7 +88,7 @@ Use the following constants with the `$operation` parameter to control which par
   The function locates the last character in `$str` that is not among `$characters` and returns the substring up to (and including) that character.
 
 - **Middle Trimming (`MCL_TRIM_MIDDLE`):**  
-  Beyond left- and right-trimming, if this flag is set, the function scans the string for consecutive occurrences of any of the `$characters` and reduces each group to a single occurrence.
+  Beyond left- and trim-rightming, if this flag is set, the function scans the string for consecutive occurrences of any of the `$characters` and reduces each group to a single occurrence.
 
 - **Combined Operations:**  
   You can combine operations with bitwise OR. For example:

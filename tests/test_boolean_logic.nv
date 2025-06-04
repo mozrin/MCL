@@ -2,7 +2,7 @@ echo "--- Boolean Type and Logical Operations ---";
 $bool_true = true;
 $bool_false = false;
 
-echo "bool_true: " . $bool_true;
+echo wrap("bool_true: " . $bool_true, MCL_WRAP_CHARS_PIPES);
 echo "bool_false: " . $bool_false;
 
 echo "true and false = " . ($bool_true and $bool_false);

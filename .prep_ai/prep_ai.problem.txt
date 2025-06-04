@@ -1,5 +1,10 @@
-I want to change the internal name of everything from nirvana to MLC and the extension for language files from .nv to .MLC
-give me a list of everything taht needs to be changed 
+We are going to create another extension called:
+
+echo(<mixed>, [...<mixed>])
+
+that outputs 1 to N parameters to the standard
+out ... which is what I assume all functions
+currently do ... output to standard out.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!

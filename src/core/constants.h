@@ -3,5 +3,6 @@
 
 #include "../extensions/trim/trim_constants.h"
 #include "../extensions/uppercase/uppercase_constants.h"
+#include "../extensions/wrap/wrap_constants.h"
 
 #endif

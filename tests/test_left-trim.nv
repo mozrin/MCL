@@ -1,8 +1,8 @@
-echo left-trim("   Hello, World!");
-echo left-trim("---Hello, World!", "-");
-echo left-trim("   \t\nHello, World!   ", " \t\n");
-echo left-trim("        ");
-echo left-trim("123abc", "123");
-echo left-trim("abcdefg", "abc");
-echo left-trim("   test   ", "");
-echo left-trim("no trim");
+echo trim-left("   Hello, World!");
+echo trim-left("---Hello, World!", "-");
+echo trim-left("   \t\nHello, World!   ", " \t\n");
+echo trim-left("        ");
+echo trim-left("123abc", "123");
+echo trim-left("abcdefg", "abc");
+echo trim-left("   test   ", "");
+echo trim-left("no trim");

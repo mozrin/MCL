@@ -2,15 +2,20 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-I want to change the internal name of everything from nirvana to MLC and the extension for language files from .nv to .MLC
-give me a list of everything taht needs to be changed 
+We are going to create another extension called:
+
+echo(<mixed>, [...<mixed>])
+
+that outputs 1 to N parameters to the standard
+out ... which is what I assume all functions
+currently do ... output to standard out.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
 DO NOT WRITE CODE UNLESS I ASK!
 --- Folder Structure ---
 
-/nirvana/.prep_ai/../src/
+/mcl/.prep_ai/../src/
 ├── core/
 ├── extensions/
 │   ├── abs/
@@ -18,14 +23,13 @@ DO NOT WRITE CODE UNLESS I ASK!
 │   ├── trim/
 │   └── uppercase/
 └── helpers/
-    ├── system/
-    └── user/
+    └── system/
 
-10 directories, 0 files
+9 directories, 0 files
 
 --- Baseline File Contents ---
 
-# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "uppercase.h"
 #include "../../core/constants.h"
 #include <cmath>
@@ -43,7 +47,7 @@ bool is_alnum(char c) { return static_cast<bool>(std::isalnum(static_cast<unsign
 bool is_lower(char c) { return static_cast<bool>(std::islower(static_cast<unsigned char>(c))); }
 bool is_upper(char c) { return static_cast<bool>(std::isupper(static_cast<unsigned char>(c))); }
 
-Value nirvana_uppercase(const std::vector<Value> &args)
+Value mcl_uppercase(const std::vector<Value> &args)
 {
 if (args.empty() || args.size() > 2)
 {
@@ -233,27 +237,27 @@ return result_string;
 
 void register_uppercase_extension(Evaluator &eval)
 {
-eval.registerNativeFunction("uppercase", nirvana_uppercase);
+eval.registerNativeFunction("uppercase", mcl_uppercase);
 }
-# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/uppercase/uppercase_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #define MCL_UPPERCASE_EVERYTHING 1
 #define MCL_UPPERCASE_TITLE 2
 #define MCL_UPPERCASE_FIRST 3
 #define MCL_UPPERCASE_ALTERNATING 4
 #define MCL_UPPERCASE_TOGGLE 5
-# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/uppercase/uppercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
 
 #include "../../core/value.h"
 #include "../../core/evaluator.h"
 
-Value nirvana_uppercase(const std::vector<Value> &args);
+Value mcl_uppercase(const std::vector<Value> &args);
 
 void register_uppercase_extension(Evaluator &eval);
 
 #endif
-# /nirvana/.prep_ai/../src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/extensions.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "extensions.h"
 
 void registerAllExtensions(Evaluator &eval)
@@ -263,25 +267,25 @@ register_sqrt_extension(eval);
 register_uppercase_extension(eval);
 register_trim_extension(eval);
 }
-# /nirvana/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
 #define EXTENSION_ABS_H
 
 #include "../../core/value.h"
 #include "../../core/evaluator.h"
 
-Value nirvana_abs(const std::vector<Value> &args);
+Value mcl_abs(const std::vector<Value> &args);
 
 void register_abs_extension(Evaluator &eval);
 
 #endif
-# /nirvana/.prep_ai/../src/extensions/abs/abs.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/abs/abs.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "abs.h"
 #include <cmath>
 #include <stdexcept>
 #include <variant>
 
-Value nirvana_abs(const std::vector<Value> &args)
+Value mcl_abs(const std::vector<Value> &args)
 {
 if (args.size() != 1)
 {
@@ -306,9 +310,9 @@ throw std::runtime_error("Function 'abs' expects a number (integer or number) ar
 
 void register_abs_extension(Evaluator &eval)
 {
-eval.registerNativeFunction("abs", nirvana_abs);
+eval.registerNativeFunction("abs", mcl_abs);
 }
-# /nirvana/.prep_ai/../src/extensions/extensions.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/extensions.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef ALL_EXTENSIONS_H
 #define ALL_EXTENSIONS_H
 
@@ -322,7 +326,7 @@ eval.registerNativeFunction("abs", nirvana_abs);
 void registerAllExtensions(Evaluator &eval);
 
 #endif
-# /nirvana/.prep_ai/../src/extensions/trim/trim.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/trim/trim.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "trim.h"
 #include "../../core/constants.h"
 #include <string>
@@ -332,7 +336,7 @@ void registerAllExtensions(Evaluator &eval);
 #include <sstream>
 #include <cmath>
 
-Value nirvana_trim(const std::vector<Value> &args)
+Value mcl_trim(const std::vector<Value> &args)
 {
 if (args.empty() || args.size() > 3)
 {
@@ -498,21 +502,21 @@ return result_str;
 
 void register_trim_extension(Evaluator &eval)
 {
-eval.registerNativeFunction("trim", nirvana_trim);
+eval.registerNativeFunction("trim", mcl_trim);
 }
-# /nirvana/.prep_ai/../src/extensions/trim/trim.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/trim/trim.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_TRIM_H
 #define EXTENSION_TRIM_H
 
 #include "../../core/value.h"
 #include "../../core/evaluator.h"
 
-Value nirvana_trim(const std::vector<Value> &args);
+Value mcl_trim(const std::vector<Value> &args);
 
 void register_trim_extension(Evaluator &eval);
 
 #endif
-# /nirvana/.prep_ai/../src/extensions/trim/trim_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/trim/trim_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #define MCL_TRIM_LEFT 1
 #define MCL_TRIM_RIGHT 2
 #define MCL_TRIM_MIDDLE 4
@@ -521,13 +525,13 @@ void register_trim_extension(Evaluator &eval);
 
 #define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
 #define MCL_TRIM_CHARS_SPACE " "
-# /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "sqrt.h"
 #include <cmath>
 #include <stdexcept>
 #include <variant>
 
-Value nirvana_sqrt(const std::vector<Value> &args)
+Value mcl_sqrt(const std::vector<Value> &args)
 {
 if (args.size() != 1)
 {
@@ -558,21 +562,21 @@ throw std::runtime_error("Function 'sqrt' expects a number (integer or number) a
 
 void register_sqrt_extension(Evaluator &eval)
 {
-eval.registerNativeFunction("sqrt", nirvana_sqrt);
+eval.registerNativeFunction("sqrt", mcl_sqrt);
 }
-# /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/extensions/sqrt/sqrt.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_SQRT_H
 #define EXTENSION_SQRT_H
 
 #include "../../core/value.h"
 #include "../../core/evaluator.h"
 
-Value nirvana_sqrt(const std::vector<Value> &args);
+Value mcl_sqrt(const std::vector<Value> &args);
 
 void register_sqrt_extension(Evaluator &eval);
 
 #endif
-# /nirvana/.prep_ai/../src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -761,7 +765,7 @@ files_to_run.insert(files_to_run.end(), matched_files.begin(), matched_files.end
 
 if (files_to_run.empty())
 {
-std::cerr << "Error: No Nirvana files found to process based on provided arguments." << std::endl;
+std::cerr << "Error: No MCL files found to process based on provided arguments." << std::endl;
 return 1;
 }
 
@@ -777,7 +781,7 @@ overall_exit_code = 1;
 debug_print_message("MCL finished.");
 return overall_exit_code;
 }
-# /nirvana/.prep_ai/../src/helpers/helpers.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/helpers/helpers.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef HELPERS_H
 #define HELPERS_H
 
@@ -916,7 +920,7 @@ throw std::runtime_error(ss.str());
 }
 
 #endif
-# /nirvana/.prep_ai/../src/helpers/helpers.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/helpers/helpers.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "helpers.h"
 #include <fstream>
 #include <sstream>
@@ -1231,7 +1235,7 @@ return eval.callNativeFunctionByName(h_def.extension_name, extension_args);
 });
 }
 }
-# /nirvana/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef LEXER_H
 #define LEXER_H
 
@@ -1261,7 +1265,7 @@ Token getNextToken();
 };
 
 #endif
-# /nirvana/.prep_ai/../src/core/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef AST_H
 #define AST_H
 
@@ -1362,7 +1366,7 @@ ProgramNode() = default;
 };
 
 #endif
-# /nirvana/.prep_ai/../src/core/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "parser.h"
 #include <iostream>
 #include <string>
@@ -1668,9 +1672,9 @@ program->statements.push_back(parseStatement());
 }
 return program;
 }
-# /nirvana/.prep_ai/../src/core/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef NIRVANA_DEBUGGER_H
-#define NIRVANA_DEBUGGER_H
+# /mcl/.prep_ai/../src/core/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_DEBUGGER_H
+#define MCL_DEBUGGER_H
 
 #include <string>
 #include <memory>
@@ -1696,7 +1700,7 @@ inline void debug_print_ast_footer() {}
 #endif
 
 #endif
-# /nirvana/.prep_ai/../src/core/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef VALUE_H
 #define VALUE_H
 
@@ -1759,15 +1763,15 @@ return os;
 }
 
 #endif
-# /nirvana/.prep_ai/../src/core/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef NIRVANA_CONSTANTS_H
-#define NIRVANA_CONSTANTS_H
+# /mcl/.prep_ai/../src/core/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_CONSTANTS_H
+#define MCL_CONSTANTS_H
 
 #include "../extensions/trim/trim_constants.h"
 #include "../extensions/uppercase/uppercase_constants.h"
 
 #endif
-# /nirvana/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef TOKEN_H
 #define TOKEN_H
 
@@ -1856,7 +1860,7 @@ std::string toString() const;
 };
 
 #endif
-# /nirvana/.prep_ai/../src/core/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "debugger.h"
 #include <iostream>
 #include <string>
@@ -1974,7 +1978,7 @@ std::cout << "----------------------------------\n\n";
 }
 
 #endif
-# /nirvana/.prep_ai/../src/core/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
@@ -2023,7 +2027,7 @@ Value getConstant(const std::string &name);
 };
 
 #endif
-# /nirvana/.prep_ai/../src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -2064,7 +2068,7 @@ std::unique_ptr<ProgramNode> parseProgram();
 };
 
 #endif
-# /nirvana/.prep_ai/../src/core/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "evaluator.h"
 #include <iostream>
 #include <stdexcept>
@@ -2671,7 +2675,7 @@ throw std::runtime_error("Runtime error: Undefined constant '" + name + "'.");
 }
 return it->second.first;
 }
-# /nirvana/.prep_ai/../src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "token.h"
 #include <map>
 #include <string>
@@ -2743,7 +2747,7 @@ str += " at line " + std::to_string(line);
 
 return str;
 }
-# /nirvana/.prep_ai/../src/core/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "lexer.h"
 #include <iostream>
 #include <cctype>
