@@ -1,7 +1,7 @@
 #include "debugger.h"
 #include <iostream>
 #include <string>
-#include "token.h"
+#include "../common/token.h"
 
 #ifdef ENABLE_DEBUG_OUTPUT
 
@@ -46,7 +46,7 @@ void debug_print_ast_node(const ASTNode *node, int indent)
                   << ", ReturnType: " << Token(funcDecl->return_type, "", 0).toString() << ")\n";
         printIndent(indent + 1);
         std::cout << "Parameters (" << funcDecl->parameters.size() << "):\n";
-        for (const auto& param : funcDecl->parameters)
+        for (const auto &param : funcDecl->parameters)
         {
             printIndent(indent + 2);
             std::cout << "Parameter (Type: " << Token(param.declared_type, "", 0).toString() << ", Name: " << param.name << ")\n";

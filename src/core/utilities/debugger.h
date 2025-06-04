@@ -3,8 +3,7 @@
 
 #include <string>
 #include <memory>
-#include "ast.h"
-
+#include "../parser/ast.h"
 
 #ifdef ENABLE_DEBUG_OUTPUT
 

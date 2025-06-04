@@ -1,8 +1,8 @@
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_uppercase(const std::vector<Value> &args);
 

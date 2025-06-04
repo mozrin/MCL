@@ -1,9 +1,9 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-#include "core/evaluator.h"
-#include "core/value.h"
-#include "core/token.h"
+#include "../core/runtime/evaluator.h"
+#include "../core/common/value.h"
+#include "../core/common/token.h"
 #include <string>
 #include <vector>
 #include <map>

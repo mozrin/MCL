@@ -1,5 +1,5 @@
 #include "uppercase.h"
-#include "../../core/constants.h"
+#include "../../core/common/constants.h"
 #include <cmath>
 #include <stdexcept>
 #include <variant>

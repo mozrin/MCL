@@ -7,13 +7,13 @@
 #include <filesystem>
 #include <regex>
 
-#include "core/lexer.h"
-#include "core/parser.h"
-#include "core/ast.h"
-#include "core/token.h"
-#include "core/evaluator.h"
-#include "core/constants.h"
-#include "core/debugger.h"
+#include "core/lexer/lexer.h"
+#include "core/parser/parser.h"
+#include "core/parser/ast.h"
+#include "core/common/token.h"
+#include "core/runtime/evaluator.h"
+#include "core/common/constants.h"
+#include "core/utilities/debugger.h"
 #include "extensions/extensions.h"
 #include "helpers/helpers.h"
 

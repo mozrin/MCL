@@ -6,8 +6,8 @@
 #include <vector>
 #include <map>
 #include <stack>
-#include "ast.h"
-#include "value.h"
+#include "../parser/ast.h"
+#include "../common/value.h"
 #include <functional>
 #include <stdexcept>
 
@@ -52,8 +52,7 @@ private:
 
     void enterScope();
     void exitScope();
-    std::pair<Value*, DeclaredType*> findVariableInScope(const std::string& name);
-
+    std::pair<Value *, DeclaredType *> findVariableInScope(const std::string &name);
 
 public:
     Evaluator();

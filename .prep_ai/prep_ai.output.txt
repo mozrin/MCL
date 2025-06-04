@@ -14,6 +14,11 @@ DO NOT WRITE CODE UNLESS I ASK!
 
 /mcl/.prep_ai/../src/
 ├── core/
+│   ├── common/
+│   ├── lexer/
+│   ├── parser/
+│   ├── runtime/
+│   └── utilities/
 ├── extensions/
 │   ├── abs/
 │   ├── arccosine/
@@ -57,7 +62,7 @@ DO NOT WRITE CODE UNLESS I ASK!
 └── helpers/
     └── system/
 
-44 directories, 0 files
+49 directories, 0 files
 
 --- Baseline File Contents ---
 
@@ -119,8 +124,8 @@ DO NOT WRITE CODE UNLESS I ASK!
 #ifndef EXTENSION_PAD_H
 #define EXTENSION_PAD_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_pad(const std::vector<Value> &args);
 
@@ -139,7 +144,7 @@ void register_pad_extension(Evaluator &eval);
 #endif
 # /mcl/.prep_ai/../src/extensions/pad/pad.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "pad.h"
-#include "../../core/constants.h"
+#include "../../core/common/constants.h"
 #include <string>
 #include <vector>
 #include <variant>
@@ -332,11 +337,77 @@ eval.registerNativeFunction("pad", mcl_pad);
 # /mcl/.prep_ai/../src/extensions/cotangent/cotangent.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 
 # /mcl/.prep_ai/../src/extensions/ascii/ascii.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "ascii.h"
+#include <string>
+#include <vector>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
 
+Value mcl_ascii(const std::vector<Value> &args)
+{
+if (args.size() != 1)
+{
+throw std::runtime_error("Function 'ascii' expects exactly 1 argument: ascii(string $character).");
+}
+
+std::string input_string;
+if (std::holds_alternative<std::string>(args[0]))
+{
+input_string = std::get<std::string>(args[0]);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'ascii': Argument 1 ($character) must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+if (input_string.empty())
+{
+throw std::runtime_error("Function 'ascii': Argument 1 ($character) must not be an empty string.");
+}
+
+return static_cast<long long>(static_cast<unsigned char>(input_string[0]));
+}
+
+void register_ascii_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("ascii", mcl_ascii);
+}
 # /mcl/.prep_ai/../src/extensions/ascii/ascii_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_ASCII_CONSTANTS_H
+#define MCL_ASCII_CONSTANTS_H
 
+#endif
 # /mcl/.prep_ai/../src/extensions/ascii/ascii.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_ASCII_H
+#define EXTENSION_ASCII_H
 
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
+
+Value mcl_ascii(const std::vector<Value> &args);
+
+void register_ascii_extension(Evaluator &eval);
+
+#endif
 # /mcl/.prep_ai/../src/extensions/arctangent/arctangent_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
 
 # /mcl/.prep_ai/../src/extensions/arctangent/arctangent.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
@@ -353,8 +424,8 @@ eval.registerNativeFunction("pad", mcl_pad);
 #ifndef EXTENSION_CEILING_H
 #define EXTENSION_CEILING_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_ceiling(const std::vector<Value> &args);
 
@@ -426,7 +497,7 @@ eval.registerNativeFunction("ceiling", mcl_ceiling);
 
 # /mcl/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "uppercase.h"
-#include "../../core/constants.h"
+#include "../../core/common/constants.h"
 #include <cmath>
 #include <stdexcept>
 #include <variant>
@@ -644,8 +715,8 @@ eval.registerNativeFunction("uppercase", mcl_uppercase);
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_uppercase(const std::vector<Value> &args);
 
@@ -670,12 +741,15 @@ void register_uppercase_extension(Evaluator &eval);
 void registerAllExtensions(Evaluator &eval)
 {
 register_abs_extension(eval);
+register_ascii_extension(eval);
 register_ceiling_extension(eval);
+register_character_extension(eval);
 register_contains_extension(eval);
 register_floor_extension(eval);
 register_max_extension(eval);
 register_min_extension(eval);
 register_pad_extension(eval);
+register_pi_extension(eval);
 register_reverse_extension(eval);
 register_sqrt_extension(eval);
 register_trim_extension(eval);
@@ -683,17 +757,94 @@ register_uppercase_extension(eval);
 register_wrap_extension(eval);
 }
 # /mcl/.prep_ai/../src/extensions/character/character.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "character.h"
+#include <string>
+#include <vector>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
+#include <cmath>
 
+Value mcl_character(const std::vector<Value> &args)
+{
+if (args.size() != 1)
+{
+throw std::runtime_error("Function 'character' expects exactly 1 argument: character(integer $ascii).");
+}
+
+long long ascii_val;
+if (std::holds_alternative<long long>(args[0]))
+{
+ascii_val = std::get<long long>(args[0]);
+}
+else if (std::holds_alternative<double>(args[0]))
+{
+double d_val = std::get<double>(args[0]);
+if (d_val != std::floor(d_val))
+{
+std::stringstream ss;
+ss << "Function 'character': Argument 1 ($ascii) must be an integer, but got " << d_val << ".";
+throw std::runtime_error(ss.str());
+}
+ascii_val = static_cast<long long>(d_val);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'character': Argument 1 ($ascii) must be an integer (integer or number), but got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+if (ascii_val < 0 || ascii_val > 255)
+{
+std::stringstream ss;
+ss << "Function 'character': ASCII value " << ascii_val << " is out of valid character range (0-255).";
+throw std::runtime_error(ss.str());
+}
+
+return std::string(1, static_cast<char>(ascii_val));
+}
+
+void register_character_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("character", mcl_character);
+}
 # /mcl/.prep_ai/../src/extensions/character/character.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_CHARACTER_H
+#define EXTENSION_CHARACTER_H
 
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
+
+Value mcl_character(const std::vector<Value> &args);
+
+void register_character_extension(Evaluator &eval);
+
+#endif
 # /mcl/.prep_ai/../src/extensions/character/character_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_CHARACTER_CONSTANTS_H
+#define MCL_CHARACTER_CONSTANTS_H
 
+#endif
 # /mcl/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
 #define EXTENSION_ABS_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_abs(const std::vector<Value> &args);
 
@@ -737,15 +888,18 @@ eval.registerNativeFunction("abs", mcl_abs);
 #ifndef ALL_EXTENSIONS_H
 #define ALL_EXTENSIONS_H
 
-#include "../core/evaluator.h"
+#include "../core/runtime/evaluator.h"
 
 #include "abs/abs.h"
+#include "ascii/ascii.h"
 #include "ceiling/ceiling.h"
+#include "character/character.h"
 #include "contains/contains.h"
 #include "floor/floor.h"
 #include "max/max.h"
 #include "min/min.h"
 #include "pad/pad.h"
+#include "pi/pi.h"
 #include "reverse/reverse.h"
 #include "sqrt/sqrt.h"
 #include "trim/trim.h"
@@ -763,7 +917,7 @@ void registerAllExtensions(Evaluator &eval);
 
 # /mcl/.prep_ai/../src/extensions/trim/trim.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "trim.h"
-#include "../../core/constants.h"
+#include "../../core/common/constants.h"
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -943,8 +1097,8 @@ eval.registerNativeFunction("trim", mcl_trim);
 #ifndef EXTENSION_TRIM_H
 #define EXTENSION_TRIM_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_trim(const std::vector<Value> &args);
 
@@ -961,11 +1115,117 @@ void register_trim_extension(Evaluator &eval);
 #define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
 #define MCL_TRIM_CHARS_SPACE " "
 # /mcl/.prep_ai/../src/extensions/pi/pi_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_PI_CONSTANTS_H
+#define MCL_PI_CONSTANTS_H
 
+#define MCL_PI_PRECISION_DEFAULT 14
+#define MCL_PI_PRECISION_DOCTOR_WHO 9
+
+#endif
 # /mcl/.prep_ai/../src/extensions/pi/pi.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "pi.h"
+#include "pi_constants.h"
+#include <string>
+#include <vector>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
+#include <cmath>
+#include <iomanip>
 
+const double MCL_PI_FULL_VALUE = 3.14159265358979;
+
+Value mcl_pi(const std::vector<Value> &args)
+{
+long long significant_places = MCL_PI_PRECISION_DEFAULT;
+
+if (args.size() > 1)
+{
+throw std::runtime_error("Function 'pi' expects 0 or 1 argument: pi(integer $significant_places=" + std::to_string(MCL_PI_PRECISION_DEFAULT) + ").");
+}
+
+if (args.size() == 1)
+{
+if (std::holds_alternative<long long>(args[0]))
+{
+significant_places = std::get<long long>(args[0]);
+}
+else if (std::holds_alternative<double>(args[0]))
+{
+double d_places = std::get<double>(args[0]);
+if (d_places != std::floor(d_places))
+{
+std::stringstream ss;
+ss << "Function 'pi': Argument 1 ($significant_places) must be an integer, but got " << d_places << ".";
+throw std::runtime_error(ss.str());
+}
+significant_places = static_cast<long long>(d_places);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'pi': Argument 1 ($significant_places) must be an integer (integer or number), but got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+}
+
+if (significant_places < 0 || significant_places > MCL_PI_PRECISION_DEFAULT)
+{
+std::stringstream ss;
+ss << "Function 'pi': Argument 1 ($significant_places) must be an integer between 0 and " << MCL_PI_PRECISION_DEFAULT << " (inclusive), but got " << significant_places << ".";
+throw std::runtime_error(ss.str());
+}
+
+std::stringstream ss;
+ss << std::fixed << std::setprecision(MCL_PI_PRECISION_DEFAULT) << MCL_PI_FULL_VALUE;
+std::string pi_str = ss.str();
+
+size_t target_len;
+if (significant_places == 0)
+{
+target_len = pi_str.find('.');
+if (target_len == std::string::npos)
+target_len = pi_str.length();
+}
+else
+{
+target_len = 1 + 1 + static_cast<size_t>(significant_places);
+}
+
+std::string clipped_pi_str = pi_str.substr(0, target_len);
+
+return std::stod(clipped_pi_str);
+}
+
+void register_pi_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("pi", mcl_pi);
+}
 # /mcl/.prep_ai/../src/extensions/pi/pi.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_PI_H
+#define EXTENSION_PI_H
 
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
+
+Value mcl_pi(const std::vector<Value> &args);
+
+void register_pi_extension(Evaluator &eval);
+
+#endif
 # /mcl/.prep_ai/../src/extensions/replace/replace_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
 
 # /mcl/.prep_ai/../src/extensions/replace/replace.h # NOT PART OF CODE DON'T ECHO IT EVER #
@@ -976,8 +1236,8 @@ void register_trim_extension(Evaluator &eval);
 #ifndef EXTENSION_MIN_H
 #define EXTENSION_MIN_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_min(const std::vector<Value> &args);
 
@@ -1090,8 +1350,8 @@ eval.registerNativeFunction("min", mcl_min);
 #ifndef EXTENSION_FLOOR_H
 #define EXTENSION_FLOOR_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_floor(const std::vector<Value> &args);
 
@@ -1135,8 +1395,8 @@ eval.registerNativeFunction("floor", mcl_floor);
 #ifndef EXTENSION_MAX_H
 #define EXTENSION_MAX_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_max(const std::vector<Value> &args);
 
@@ -1288,8 +1548,8 @@ eval.registerNativeFunction("sqrt", mcl_sqrt);
 #ifndef EXTENSION_SQRT_H
 #define EXTENSION_SQRT_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_sqrt(const std::vector<Value> &args);
 
@@ -1300,8 +1560,8 @@ void register_sqrt_extension(Evaluator &eval);
 #ifndef EXTENSION_WRAP_H
 #define EXTENSION_WRAP_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_wrap(const std::vector<Value> &args);
 
@@ -1310,7 +1570,7 @@ void register_wrap_extension(Evaluator &eval);
 #endif
 # /mcl/.prep_ai/../src/extensions/wrap/wrap.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "wrap.h"
-#include "../../core/constants.h"
+#include "../../core/common/constants.h"
 #include <string>
 #include <vector>
 #include <variant>
@@ -1420,8 +1680,8 @@ eval.registerNativeFunction("wrap", mcl_wrap);
 #ifndef EXTENSION_CONTAINS_H
 #define EXTENSION_CONTAINS_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_contains(const std::vector<Value> &args);
 
@@ -1584,8 +1844,8 @@ eval.registerNativeFunction("reverse", mcl_reverse);
 #ifndef EXTENSION_REVERSE_H
 #define EXTENSION_REVERSE_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_reverse(const std::vector<Value> &args);
 
@@ -1602,13 +1862,13 @@ void register_reverse_extension(Evaluator &eval);
 #include <filesystem>
 #include <regex>
 
-#include "core/lexer.h"
-#include "core/parser.h"
-#include "core/ast.h"
-#include "core/token.h"
-#include "core/evaluator.h"
-#include "core/constants.h"
-#include "core/debugger.h"
+#include "core/lexer/lexer.h"
+#include "core/parser/parser.h"
+#include "core/parser/ast.h"
+#include "core/common/token.h"
+#include "core/runtime/evaluator.h"
+#include "core/common/constants.h"
+#include "core/utilities/debugger.h"
 #include "extensions/extensions.h"
 #include "helpers/helpers.h"
 
@@ -1682,6 +1942,9 @@ evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
 evaluator.registerConstant("MCL_WRAP_CHARS_DEFAULT", MCL_WRAP_CHARS_DEFAULT);
 evaluator.registerConstant("MCL_WRAP_CHARS_HASHES", MCL_WRAP_CHARS_HASHES);
 evaluator.registerConstant("MCL_WRAP_CHARS_PIPES", MCL_WRAP_CHARS_PIPES);
+
+evaluator.registerConstant("MCL_PI_PRECISION_DEFAULT", (long long)MCL_PI_PRECISION_DEFAULT);
+evaluator.registerConstant("MCL_PI_PRECISION_DOCTOR_WHO", (long long)MCL_PI_PRECISION_DOCTOR_WHO);
 
 registerAllExtensions(evaluator);
 registerAllHelpers(evaluator);
@@ -1809,9 +2072,9 @@ return overall_exit_code;
 #ifndef HELPERS_H
 #define HELPERS_H
 
-#include "core/evaluator.h"
-#include "core/value.h"
-#include "core/token.h"
+#include "../core/runtime/evaluator.h"
+#include "../core/common/value.h"
+#include "../core/common/token.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -2259,657 +2522,13 @@ return eval.callNativeFunctionByName(h_def.extension_name, extension_args);
 });
 }
 }
-# /mcl/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef LEXER_H
-#define LEXER_H
-
-#include <string>
-#include <vector>
-#include "token.h"
-
-class Lexer
-{
-private:
-std::string source;
-int current;
-int line;
-
-char peek();
-char advance();
-char peekNext();
-void skipWhitespace();
-
-Token identifierOrKeyword();
-Token string();
-Token number();
-
-public:
-Lexer(std::string source);
-Token getNextToken();
-};
-
-#endif
-# /mcl/.prep_ai/../src/core/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef AST_H
-#define AST_H
-
-#include <memory>
-#include <string>
-#include <vector>
-#include "token.h"
-#include "value.h"
-
-struct ASTNode
-{
-virtual ~ASTNode() = default;
-};
-
-struct StringLiteralExpr : public ASTNode
-{
-std::string value;
-StringLiteralExpr(std::string val) : value(std::move(val)) {}
-};
-
-struct NumberLiteralExpr : public ASTNode
-{
-double value;
-NumberLiteralExpr(double val) : value(val) {}
-};
-
-struct BooleanLiteralExpr : public ASTNode
-{
-bool value;
-BooleanLiteralExpr(bool val) : value(val) {}
-};
-
-struct VariableExpr : public ASTNode
-{
-std::string name;
-VariableExpr(std::string name) : name(std::move(name)) {}
-};
-
-struct BinaryOpExpr : public ASTNode
-{
-TokenType op;
-std::unique_ptr<ASTNode> left;
-std::unique_ptr<ASTNode> right;
-
-BinaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> left_expr, std::unique_ptr<ASTNode> right_expr)
-: op(op_type), left(std::move(left_expr)), right(std::move(right_expr)) {}
-};
-
-struct UnaryOpExpr : public ASTNode
-{
-TokenType op;
-std::unique_ptr<ASTNode> right;
-
-UnaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> right_expr)
-: op(op_type), right(std::move(right_expr)) {}
-};
-
-struct CallExpr : public ASTNode
-{
-std::unique_ptr<ASTNode> callee;
-std::vector<std::unique_ptr<ASTNode>> arguments;
-
-CallExpr(std::unique_ptr<ASTNode> callee_expr, std::vector<std::unique_ptr<ASTNode>> args)
-: callee(std::move(callee_expr)), arguments(std::move(args)) {}
-};
-
-struct AssignmentStatement : public ASTNode
-{
-std::unique_ptr<VariableExpr> target;
-std::unique_ptr<ASTNode> value;
-bool is_declaration;
-
-AssignmentStatement(std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> assigned_value, bool is_decl = false)
-: target(std::move(target_var)), value(std::move(assigned_value)), is_declaration(is_decl) {}
-};
-
-struct DeclarationStatement : public ASTNode
-{
-TokenType declared_type;
-std::unique_ptr<VariableExpr> target;
-std::unique_ptr<ASTNode> value;
-
-DeclarationStatement(TokenType type, std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> initial_value)
-: declared_type(type), target(std::move(target_var)), value(std::move(initial_value)) {}
-};
-
-struct EchoStatement : public ASTNode
-{
-std::unique_ptr<ASTNode> expression;
-
-EchoStatement(std::unique_ptr<ASTNode> expr_to_echo) : expression(std::move(expr_to_echo)) {}
-};
-
-struct ReturnStatement : public ASTNode
-{
-std::unique_ptr<ASTNode> expression;
-ReturnStatement(std::unique_ptr<ASTNode> expr) : expression(std::move(expr)) {}
-};
-
-struct BlockStatement : public ASTNode
-{
-std::vector<std::unique_ptr<ASTNode>> statements;
-BlockStatement() = default;
-};
-
-struct ParameterDeclaration
-{
-TokenType declared_type;
-std::string name;
-std::unique_ptr<ASTNode> default_value;
-
-ParameterDeclaration(TokenType type, std::string param_name, std::unique_ptr<ASTNode> def_val = nullptr)
-: declared_type(type), name(std::move(param_name)), default_value(std::move(def_val)) {}
-
-ParameterDeclaration(const ParameterDeclaration&) = delete;
-ParameterDeclaration& operator=(const ParameterDeclaration&) = delete;
-ParameterDeclaration(ParameterDeclaration&&) = default;
-ParameterDeclaration& operator=(ParameterDeclaration&&) = default;
-};
-
-struct FunctionDeclaration : public ASTNode
-{
-std::string name;
-std::vector<ParameterDeclaration> parameters;
-TokenType return_type;
-std::unique_ptr<BlockStatement> body;
-
-FunctionDeclaration(std::string func_name, std::vector<ParameterDeclaration>&& params, TokenType ret_type, std::unique_ptr<BlockStatement> func_body)
-: name(std::move(func_name)), parameters(std::move(params)), return_type(ret_type), body(std::move(func_body)) {}
-};
-
-struct ProgramNode : public ASTNode
-{
-std::vector<std::unique_ptr<ASTNode>> statements;
-ProgramNode() = default;
-};
-
-#endif
-# /mcl/.prep_ai/../src/core/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-#include "parser.h"
-#include <iostream>
-#include <string>
-#include <stdexcept>
-
-Parser::Parser(Lexer &lexer) : lexer(lexer), currentToken(lexer.getNextToken())
-{
-}
-
-void Parser::advance()
-{
-currentToken = lexer.getNextToken();
-
-if (currentToken.type == TokenType::UNKNOWN)
-{
-throw std::runtime_error("Lexer returned UNKNOWN token: \"" + currentToken.lexeme + "\" at line " + std::to_string(currentToken.line) + ".");
-}
-}
-
-void Parser::consume(TokenType type)
-{
-if (currentToken.type == type)
-{
-advance();
-}
-else
-{
-throw std::runtime_error("Expected token type " + Token(type, "", 0).toString() + " but found " + currentToken.toString() + ".");
-}
-}
-
-TokenType Parser::consumeTypeKeyword()
-{
-TokenType type = currentToken.type;
-if (type == TokenType::STRING_KEYWORD ||
-type == TokenType::INTEGER_KEYWORD ||
-type == TokenType::NUMBER_KEYWORD ||
-type == TokenType::BOOLEAN_KEYWORD)
-{
-advance();
-return type;
-}
-throw std::runtime_error("Expected a type keyword (string, integer, number, boolean), but got " +
-currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
-}
-
-std::string Parser::consumeIdentifier()
-{
-if (currentToken.type == TokenType::IDENTIFIER)
-{
-std::string name = currentToken.lexeme;
-advance();
-return name;
-}
-throw std::runtime_error("Expected an identifier, but got " +
-currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
-}
-
-std::unique_ptr<ASTNode> Parser::parsePrimaryExpression()
-{
-if (currentToken.type == TokenType::STRING_LITERAL)
-{
-std::string value = std::get<std::string>(currentToken.literal);
-consume(TokenType::STRING_LITERAL);
-return std::make_unique<StringLiteralExpr>(value);
-}
-else if (currentToken.type == TokenType::NUMBER_LITERAL)
-{
-double value;
-if (std::holds_alternative<long long>(currentToken.literal))
-{
-value = static_cast<double>(std::get<long long>(currentToken.literal));
-}
-else
-{
-value = std::get<double>(currentToken.literal);
-}
-consume(TokenType::NUMBER_LITERAL);
-return std::make_unique<NumberLiteralExpr>(value);
-}
-else if (currentToken.type == TokenType::TRUE)
-{
-bool value = std::get<bool>(currentToken.literal);
-consume(TokenType::TRUE);
-return std::make_unique<BooleanLiteralExpr>(value);
-}
-else if (currentToken.type == TokenType::FALSE)
-{
-bool value = std::get<bool>(currentToken.literal);
-consume(TokenType::FALSE);
-return std::make_unique<BooleanLiteralExpr>(value);
-}
-else if (currentToken.type == TokenType::IDENTIFIER)
-{
-std::string name = currentToken.lexeme;
-consume(TokenType::IDENTIFIER);
-return std::make_unique<VariableExpr>(name);
-}
-else if (currentToken.type == TokenType::LEFT_PAREN)
-{
-consume(TokenType::LEFT_PAREN);
-std::unique_ptr<ASTNode> expr = parseExpression();
-consume(TokenType::RIGHT_PAREN);
-return expr;
-}
-
-throw std::runtime_error("Expected a primary expression (literal, variable, or parenthesized expression), but got " +
-currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
-}
-
-std::unique_ptr<ASTNode> Parser::parseCall()
-{
-std::unique_ptr<ASTNode> expr = parsePrimaryExpression();
-
-while (currentToken.type == TokenType::LEFT_PAREN)
-{
-consume(TokenType::LEFT_PAREN);
-std::vector<std::unique_ptr<ASTNode>> args;
-if (currentToken.type != TokenType::RIGHT_PAREN)
-{
-do
-{
-args.push_back(parseExpression());
-if (currentToken.type == TokenType::COMMA)
-{
-consume(TokenType::COMMA);
-}
-else
-{
-break;
-}
-} while (true);
-}
-consume(TokenType::RIGHT_PAREN);
-expr = std::make_unique<CallExpr>(std::move(expr), std::move(args));
-}
-return expr;
-}
-
-std::unique_ptr<ASTNode> Parser::parseUnary()
-{
-if (currentToken.type == TokenType::BANG ||
-currentToken.type == TokenType::MINUS ||
-currentToken.type == TokenType::NOT)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseUnary();
-return std::make_unique<UnaryOpExpr>(op, std::move(right));
-}
-return parseCall();
-}
-
-std::unique_ptr<ASTNode> Parser::parseFactor()
-{
-std::unique_ptr<ASTNode> left = parseUnary();
-
-while (currentToken.type == TokenType::STAR || currentToken.type == TokenType::SLASH)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseUnary();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseTerm()
-{
-std::unique_ptr<ASTNode> left = parseFactor();
-
-while (currentToken.type == TokenType::PLUS || currentToken.type == TokenType::MINUS)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseFactor();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseComparison()
-{
-std::unique_ptr<ASTNode> left = parseTerm();
-
-while (currentToken.type == TokenType::GREATER || currentToken.type == TokenType::GREATER_EQUAL ||
-currentToken.type == TokenType::LESS || currentToken.type == TokenType::LESS_EQUAL)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseTerm();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseEquality()
-{
-std::unique_ptr<ASTNode> left = parseComparison();
-
-while (currentToken.type == TokenType::BANG_EQUAL || currentToken.type == TokenType::EQUAL_EQUAL)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseComparison();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseBitwiseOr()
-{
-std::unique_ptr<ASTNode> left = parseEquality();
-
-while (currentToken.type == TokenType::PIPE)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseEquality();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
-{
-std::unique_ptr<ASTNode> left = parseBitwiseOr();
-
-while (currentToken.type == TokenType::AND)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseBitwiseOr();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseLogicalOr()
-{
-std::unique_ptr<ASTNode> left = parseLogicalAnd();
-
-while (currentToken.type == TokenType::OR)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseLogicalAnd();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseConcatenation()
-{
-std::unique_ptr<ASTNode> left = parseLogicalOr();
-
-while (currentToken.type == TokenType::DOT)
-{
-TokenType op = currentToken.type;
-advance();
-std::unique_ptr<ASTNode> right = parseLogicalOr();
-left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
-}
-return left;
-}
-
-std::unique_ptr<ASTNode> Parser::parseExpression()
-{
-return parseConcatenation();
-}
-
-std::unique_ptr<EchoStatement> Parser::parseEchoStatement()
-{
-consume(TokenType::ECHO);
-std::unique_ptr<ASTNode> expr = parseExpression();
-consume(TokenType::SEMICOLON);
-return std::make_unique<EchoStatement>(std::move(expr));
-}
-
-std::unique_ptr<DeclarationStatement> Parser::parsePublicDeclarationStatement()
-{
-consume(TokenType::PUBLIC);
-TokenType declared_type_token = consumeTypeKeyword();
-std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
-
-std::unique_ptr<ASTNode> value_expr = nullptr;
-if (currentToken.type == TokenType::EQUAL)
-{
-consume(TokenType::EQUAL);
-value_expr = parseExpression();
-}
-consume(TokenType::SEMICOLON);
-return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
-}
-
-std::unique_ptr<DeclarationStatement> Parser::parseLocalDeclarationStatement()
-{
-TokenType declared_type_token = consumeTypeKeyword();
-std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
-
-std::unique_ptr<ASTNode> value_expr = nullptr;
-if (currentToken.type == TokenType::EQUAL)
-{
-consume(TokenType::EQUAL);
-value_expr = parseExpression();
-}
-consume(TokenType::SEMICOLON);
-return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
-}
-
-std::unique_ptr<ReturnStatement> Parser::parseReturnStatement()
-{
-consume(TokenType::RETURN);
-std::unique_ptr<ASTNode> expr = nullptr;
-if (currentToken.type != TokenType::SEMICOLON)
-{
-expr = parseExpression();
-}
-consume(TokenType::SEMICOLON);
-return std::make_unique<ReturnStatement>(std::move(expr));
-}
-
-std::unique_ptr<BlockStatement> Parser::parseBlock()
-{
-auto block = std::make_unique<BlockStatement>();
-consume(TokenType::LEFT_BRACE);
-while (currentToken.type != TokenType::RIGHT_BRACE && currentToken.type != TokenType::EOF_TOKEN)
-{
-block->statements.push_back(parseStatement());
-}
-consume(TokenType::RIGHT_BRACE);
-return block;
-}
-
-std::vector<ParameterDeclaration> Parser::parseParameterList()
-{
-std::vector<ParameterDeclaration> parameters;
-consume(TokenType::LEFT_PAREN);
-
-if (currentToken.type != TokenType::RIGHT_PAREN)
-{
-do
-{
-TokenType param_type = consumeTypeKeyword();
-std::string param_name = consumeIdentifier();
-std::unique_ptr<ASTNode> default_value = nullptr;
-
-if (currentToken.type == TokenType::EQUAL)
-{
-consume(TokenType::EQUAL);
-default_value = parseExpression();
-}
-parameters.emplace_back(param_type, param_name, std::move(default_value));
-
-if (currentToken.type == TokenType::COMMA)
-{
-consume(TokenType::COMMA);
-}
-else
-{
-break;
-}
-} while (true);
-}
-consume(TokenType::RIGHT_PAREN);
-return parameters;
-}
-
-std::unique_ptr<FunctionDeclaration> Parser::parseFunctionDeclaration()
-{
-consume(TokenType::FUNCTION);
-std::string func_name = consumeIdentifier();
-std::vector<ParameterDeclaration> parameters = parseParameterList();
-consume(TokenType::COLON);
-TokenType return_type = consumeTypeKeyword();
-std::unique_ptr<BlockStatement> body = parseBlock();
-
-return std::make_unique<FunctionDeclaration>(func_name, std::move(parameters), return_type, std::move(body));
-}
-
-std::unique_ptr<ASTNode> Parser::parseStatement()
-{
-if (currentToken.type == TokenType::ECHO)
-{
-return parseEchoStatement();
-}
-else if (currentToken.type == TokenType::PUBLIC)
-{
-return parsePublicDeclarationStatement();
-}
-else if (currentToken.type == TokenType::STRING_KEYWORD ||
-currentToken.type == TokenType::INTEGER_KEYWORD ||
-currentToken.type == TokenType::NUMBER_KEYWORD ||
-currentToken.type == TokenType::BOOLEAN_KEYWORD)
-{
-return parseLocalDeclarationStatement();
-}
-else if (currentToken.type == TokenType::RETURN)
-{
-return parseReturnStatement();
-}
-else if (currentToken.type == TokenType::IDENTIFIER)
-{
-std::string identifier_lexeme = currentToken.lexeme;
-int identifier_line = currentToken.line;
-advance();
-
-if (currentToken.type == TokenType::EQUAL)
-{
-std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(identifier_lexeme);
-consume(TokenType::EQUAL);
-std::unique_ptr<ASTNode> value_expr = parseExpression();
-consume(TokenType::SEMICOLON);
-return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
-}
-else if (currentToken.type == TokenType::LEFT_PAREN)
-{
-std::unique_ptr<VariableExpr> callee_expr = std::make_unique<VariableExpr>(identifier_lexeme);
-
-consume(TokenType::LEFT_PAREN);
-std::vector<std::unique_ptr<ASTNode>> args;
-if (currentToken.type != TokenType::RIGHT_PAREN)
-{
-do
-{
-args.push_back(parseExpression());
-if (currentToken.type == TokenType::COMMA)
-{
-consume(TokenType::COMMA);
-}
-else
-{
-break;
-}
-} while (true);
-}
-consume(TokenType::RIGHT_PAREN);
-consume(TokenType::SEMICOLON);
-return std::make_unique<CallExpr>(std::move(callee_expr), std::move(args));
-}
-else
-{
-throw std::runtime_error("Unexpected token after identifier '" + identifier_lexeme + "'. Expected '=' or '(', but got " +
-currentToken.toString() + " at line " + std::to_string(identifier_line) + ".");
-}
-}
-
-throw std::runtime_error("Unexpected token at the beginning of a statement: " +
-currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
-}
-
-std::unique_ptr<ASTNode> Parser::parseTopLevelStatement()
-{
-if (currentToken.type == TokenType::FUNCTION)
-{
-return parseFunctionDeclaration();
-}
-else
-{
-return parseStatement();
-}
-}
-
-std::unique_ptr<ProgramNode> Parser::parseProgram()
-{
-auto program = std::make_unique<ProgramNode>();
-
-while (currentToken.type != TokenType::EOF_TOKEN)
-{
-program->statements.push_back(parseTopLevelStatement());
-}
-return program;
-}
-# /mcl/.prep_ai/../src/core/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/utilities/debugger.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef MCL_DEBUGGER_H
 #define MCL_DEBUGGER_H
 
 #include <string>
 #include <memory>
-#include "ast.h"
-
+#include "../parser/ast.h"
 
 #ifdef ENABLE_DEBUG_OUTPUT
 
@@ -2928,178 +2547,11 @@ inline void debug_print_ast_footer() {}
 #endif
 
 #endif
-# /mcl/.prep_ai/../src/core/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef VALUE_H
-#define VALUE_H
-
-#include <string>
-#include <variant>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <cmath>
-
-enum class DeclaredType
-{
-ANY,
-STRING,
-INTEGER,
-NUMBER,
-BOOLEAN
-};
-
-inline DeclaredType valueTypeToDeclaredType(const std::variant<std::string, long long, double, bool, std::monostate> &val)
-{
-if (std::holds_alternative<std::string>(val))
-return DeclaredType::STRING;
-if (std::holds_alternative<long long>(val))
-return DeclaredType::INTEGER;
-if (std::holds_alternative<double>(val))
-return DeclaredType::NUMBER;
-if (std::holds_alternative<bool>(val))
-return DeclaredType::BOOLEAN;
-return DeclaredType::ANY;
-}
-
-using Value = std::variant<std::string, long long, double, bool, std::monostate>;
-
-inline std::ostream &operator<<(std::ostream &os, const Value &val)
-{
-if (std::holds_alternative<std::string>(val))
-{
-os << std::get<std::string>(val);
-}
-else if (std::holds_alternative<long long>(val))
-{
-os << std::get<long long>(val);
-}
-else if (std::holds_alternative<double>(val))
-{
-std::stringstream ss;
-ss << std::setprecision(14) << std::get<double>(val);
-os << ss.str();
-}
-else if (std::holds_alternative<bool>(val))
-{
-os << (std::get<bool>(val) ? "true" : "false");
-}
-else if (std::holds_alternative<std::monostate>(val))
-{
-os << "null";
-}
-return os;
-}
-
-#endif
-# /mcl/.prep_ai/../src/core/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef MCL_CONSTANTS_H
-#define MCL_CONSTANTS_H
-
-#include "../extensions/pad/pad_constants.h"
-#include "../extensions/trim/trim_constants.h"
-#include "../extensions/uppercase/uppercase_constants.h"
-#include "../extensions/wrap/wrap_constants.h"
-
-#endif
-# /mcl/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef TOKEN_H
-#define TOKEN_H
-
-#include <string>
-#include <variant>
-#include <utility>
-#include <cstdint>
-
-#include "value.h"
-
-enum class TokenType
-{
-SEMICOLON,
-DOT,
-EQUAL,
-LEFT_PAREN,
-RIGHT_PAREN,
-LEFT_BRACE,
-RIGHT_BRACE,
-PLUS,
-MINUS,
-STAR,
-SLASH,
-BANG,
-LESS,
-GREATER,
-
-BANG_EQUAL,
-EQUAL_EQUAL,
-LESS_EQUAL,
-GREATER_EQUAL,
-
-IDENTIFIER,
-STRING_LITERAL,
-NUMBER_LITERAL,
-TRUE,
-FALSE,
-
-ECHO,
-AND,
-OR,
-NOT,
-
-PUBLIC,
-FUNCTION,
-RETURN,
-STRING_KEYWORD,
-INTEGER_KEYWORD,
-NUMBER_KEYWORD,
-BOOLEAN_KEYWORD,
-
-COMMA,
-COLON,
-PIPE,
-
-EOF_TOKEN,
-UNKNOWN,
-};
-
-inline DeclaredType tokenTypeToDeclaredType(TokenType type)
-{
-switch (type)
-{
-case TokenType::STRING_KEYWORD:
-return DeclaredType::STRING;
-case TokenType::INTEGER_KEYWORD:
-return DeclaredType::INTEGER;
-case TokenType::NUMBER_KEYWORD:
-return DeclaredType::NUMBER;
-case TokenType::BOOLEAN_KEYWORD:
-return DeclaredType::BOOLEAN;
-default:
-return DeclaredType::ANY;
-}
-}
-
-struct Token
-{
-TokenType type;
-std::string lexeme;
-std::variant<std::string, long long, double, bool, std::monostate> literal;
-int line;
-
-Token(TokenType type, std::string lexeme, std::variant<std::string, long long, double, bool, std::monostate> literal, int line)
-: type(type), lexeme(std::move(lexeme)), literal(std::move(literal)), line(line) {}
-
-Token(TokenType type, std::string lexeme, int line)
-: type(type), lexeme(std::move(lexeme)), literal(std::monostate{}), line(line) {}
-
-std::string toString() const;
-};
-
-#endif
-# /mcl/.prep_ai/../src/core/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/utilities/debugger.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "debugger.h"
 #include <iostream>
 #include <string>
-#include "token.h"
+#include "../common/token.h"
 
 #ifdef ENABLE_DEBUG_OUTPUT
 
@@ -3144,7 +2596,7 @@ std::cout << "FunctionDeclaration (Name: " << funcDecl->name
 << ", ReturnType: " << Token(funcDecl->return_type, "", 0).toString() << ")\n";
 printIndent(indent + 1);
 std::cout << "Parameters (" << funcDecl->parameters.size() << "):\n";
-for (const auto& param : funcDecl->parameters)
+for (const auto &param : funcDecl->parameters)
 {
 printIndent(indent + 2);
 std::cout << "Parameter (Type: " << Token(param.declared_type, "", 0).toString() << ", Name: " << param.name << ")\n";
@@ -3255,7 +2707,7 @@ std::cout << "----------------------------------\n\n";
 }
 
 #endif
-# /mcl/.prep_ai/../src/core/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/runtime/evaluator.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
@@ -3264,8 +2716,8 @@ std::cout << "----------------------------------\n\n";
 #include <vector>
 #include <map>
 #include <stack>
-#include "ast.h"
-#include "value.h"
+#include "../parser/ast.h"
+#include "../common/value.h"
 #include <functional>
 #include <stdexcept>
 
@@ -3310,8 +2762,7 @@ Value getDefaultValueForType(TokenType type_token);
 
 void enterScope();
 void exitScope();
-std::pair<Value*, DeclaredType*> findVariableInScope(const std::string& name);
-
+std::pair<Value *, DeclaredType *> findVariableInScope(const std::string &name);
 
 public:
 Evaluator();
@@ -3323,60 +2774,7 @@ Value getConstant(const std::string &name);
 };
 
 #endif
-# /mcl/.prep_ai/../src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
-#ifndef PARSER_H
-#define PARSER_H
-
-#include <vector>
-#include <string>
-#include <memory>
-#include "lexer.h"
-#include "ast.h"
-#include "token.h"
-
-class Parser
-{
-private:
-Lexer &lexer;
-Token currentToken;
-
-void advance();
-void consume(TokenType type);
-TokenType consumeTypeKeyword();
-std::string consumeIdentifier();
-
-std::unique_ptr<ASTNode> parsePrimaryExpression();
-std::unique_ptr<ASTNode> parseCall();
-std::unique_ptr<ASTNode> parseUnary();
-std::unique_ptr<ASTNode> parseFactor();
-std::unique_ptr<ASTNode> parseTerm();
-std::unique_ptr<ASTNode> parseComparison();
-std::unique_ptr<ASTNode> parseEquality();
-std::unique_ptr<ASTNode> parseBitwiseOr();
-std::unique_ptr<ASTNode> parseLogicalAnd();
-std::unique_ptr<ASTNode> parseLogicalOr();
-std::unique_ptr<ASTNode> parseConcatenation();
-std::unique_ptr<ASTNode> parseExpression();
-
-std::unique_ptr<EchoStatement> parseEchoStatement();
-std::unique_ptr<DeclarationStatement> parsePublicDeclarationStatement();
-std::unique_ptr<DeclarationStatement> parseLocalDeclarationStatement();
-std::unique_ptr<ReturnStatement> parseReturnStatement();
-std::unique_ptr<BlockStatement> parseBlock();
-std::vector<ParameterDeclaration> parseParameterList();
-std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
-
-std::unique_ptr<ASTNode> parseStatement();
-std::unique_ptr<ASTNode> parseTopLevelStatement();
-
-public:
-Parser(Lexer &lexer);
-
-std::unique_ptr<ProgramNode> parseProgram();
-};
-
-#endif
-# /mcl/.prep_ai/../src/core/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+# /mcl/.prep_ai/../src/core/runtime/evaluator.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "evaluator.h"
 #include <iostream>
 #include <stdexcept>
@@ -4129,84 +3527,37 @@ throw std::runtime_error("Runtime error: Undefined constant '" + name + "'.");
 }
 return *val_ptr;
 }
-# /mcl/.prep_ai/../src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
-#include "token.h"
-#include <map>
-#include <string>
-#include <iomanip>
-#include <sstream>
+# /mcl/.prep_ai/../src/core/lexer/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef LEXER_H
+#define LEXER_H
 
-static const std::map<TokenType, std::string> tokenTypeNames = {
-{TokenType::SEMICOLON, "SEMICOLON"},
-{TokenType::DOT, "DOT"},
-{TokenType::EQUAL, "EQUAL"},
-{TokenType::LEFT_PAREN, "LEFT_PAREN"},
-{TokenType::RIGHT_PAREN, "RIGHT_PAREN"},
-{TokenType::LEFT_BRACE, "LEFT_BRACE"},
-{TokenType::RIGHT_BRACE, "RIGHT_BRACE"},
-{TokenType::PLUS, "PLUS"},
-{TokenType::MINUS, "MINUS"},
-{TokenType::STAR, "STAR"},
-{TokenType::SLASH, "SLASH"},
-{TokenType::BANG, "BANG"},
-{TokenType::LESS, "LESS"},
-{TokenType::GREATER, "GREATER"},
-{TokenType::BANG_EQUAL, "BANG_EQUAL"},
-{TokenType::EQUAL_EQUAL, "EQUAL_EQUAL"},
-{TokenType::LESS_EQUAL, "LESS_EQUAL"},
-{TokenType::GREATER_EQUAL, "GREATER_EQUAL"},
-{TokenType::IDENTIFIER, "IDENTIFIER"},
-{TokenType::STRING_LITERAL, "STRING_LITERAL"},
-{TokenType::NUMBER_LITERAL, "NUMBER_LITERAL"},
-{TokenType::TRUE, "TRUE"},
-{TokenType::FALSE, "FALSE"},
-{TokenType::ECHO, "ECHO"},
-{TokenType::AND, "AND"},
-{TokenType::OR, "OR"},
-{TokenType::NOT, "NOT"},
-{TokenType::PUBLIC, "PUBLIC"},
-{TokenType::FUNCTION, "FUNCTION"},
-{TokenType::RETURN, "RETURN"},
-{TokenType::STRING_KEYWORD, "STRING_KEYWORD"},
-{TokenType::INTEGER_KEYWORD, "INTEGER_KEYWORD"},
-{TokenType::NUMBER_KEYWORD, "NUMBER_KEYWORD"},
-{TokenType::BOOLEAN_KEYWORD, "BOOLEAN_KEYWORD"},
-{TokenType::COMMA, "COMMA"},
-{TokenType::COLON, "COLON"},
-{TokenType::PIPE, "PIPE"},
-{TokenType::EOF_TOKEN, "EOF_TOKEN"},
-{TokenType::UNKNOWN, "UNKNOWN"},
+#include <string>
+#include <vector>
+#include "../common/token.h"
+
+class Lexer
+{
+private:
+std::string source;
+int current;
+int line;
+
+char peek();
+char advance();
+char peekNext();
+void skipWhitespace();
+
+Token identifierOrKeyword();
+Token string();
+Token number();
+
+public:
+Lexer(std::string source);
+Token getNextToken();
 };
 
-std::string Token::toString() const
-{
-std::string typeName = tokenTypeNames.count(type) ? tokenTypeNames.at(type) : "UNKNOWN_TYPE";
-std::string str = typeName + " (\"" + lexeme + "\")";
-
-if (std::holds_alternative<std::string>(literal))
-{
-str += " -> \"" + std::get<std::string>(literal) + "\"";
-}
-else if (std::holds_alternative<long long>(literal))
-{
-str += " -> " + std::to_string(std::get<long long>(literal));
-}
-else if (std::holds_alternative<double>(literal))
-{
-std::stringstream ss;
-ss << std::setprecision(14) << std::get<double>(literal);
-str += " -> " + ss.str();
-}
-else if (std::holds_alternative<bool>(literal))
-{
-str += std::string(" -> ") + (std::get<bool>(literal) ? "true" : "false");
-}
-
-str += " at line " + std::to_string(line);
-
-return str;
-}
-# /mcl/.prep_ai/../src/core/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#endif
+# /mcl/.prep_ai/../src/core/lexer/lexer.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "lexer.h"
 #include <iostream>
 #include <cctype>
@@ -4565,3 +3916,914 @@ return number();
 throw std::runtime_error("Unexpected character '" + std::string(1, c) + "' at line " + std::to_string(startLine) + ".");
 }
 }
+# /mcl/.prep_ai/../src/core/common/value.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef VALUE_H
+#define VALUE_H
+
+#include <string>
+#include <variant>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <cmath>
+
+enum class DeclaredType
+{
+ANY,
+STRING,
+INTEGER,
+NUMBER,
+BOOLEAN
+};
+
+inline DeclaredType valueTypeToDeclaredType(const std::variant<std::string, long long, double, bool, std::monostate> &val)
+{
+if (std::holds_alternative<std::string>(val))
+return DeclaredType::STRING;
+if (std::holds_alternative<long long>(val))
+return DeclaredType::INTEGER;
+if (std::holds_alternative<double>(val))
+return DeclaredType::NUMBER;
+if (std::holds_alternative<bool>(val))
+return DeclaredType::BOOLEAN;
+return DeclaredType::ANY;
+}
+
+using Value = std::variant<std::string, long long, double, bool, std::monostate>;
+
+inline std::ostream &operator<<(std::ostream &os, const Value &val)
+{
+if (std::holds_alternative<std::string>(val))
+{
+os << std::get<std::string>(val);
+}
+else if (std::holds_alternative<long long>(val))
+{
+os << std::get<long long>(val);
+}
+else if (std::holds_alternative<double>(val))
+{
+std::stringstream ss;
+ss << std::setprecision(14) << std::get<double>(val);
+os << ss.str();
+}
+else if (std::holds_alternative<bool>(val))
+{
+os << (std::get<bool>(val) ? "true" : "false");
+}
+else if (std::holds_alternative<std::monostate>(val))
+{
+os << "null";
+}
+return os;
+}
+
+#endif
+# /mcl/.prep_ai/../src/core/common/constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_CONSTANTS_H
+#define MCL_CONSTANTS_H
+
+#include "../../extensions/pad/pad_constants.h"
+#include "../../extensions/pi/pi_constants.h"
+#include "../../extensions/trim/trim_constants.h"
+#include "../../extensions/uppercase/uppercase_constants.h"
+#include "../../extensions/wrap/wrap_constants.h"
+
+#endif
+# /mcl/.prep_ai/../src/core/common/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef TOKEN_H
+#define TOKEN_H
+
+#include <string>
+#include <variant>
+#include <utility>
+#include <cstdint>
+
+#include "value.h"
+
+enum class TokenType
+{
+SEMICOLON,
+DOT,
+EQUAL,
+LEFT_PAREN,
+RIGHT_PAREN,
+LEFT_BRACE,
+RIGHT_BRACE,
+PLUS,
+MINUS,
+STAR,
+SLASH,
+BANG,
+LESS,
+GREATER,
+
+BANG_EQUAL,
+EQUAL_EQUAL,
+LESS_EQUAL,
+GREATER_EQUAL,
+
+IDENTIFIER,
+STRING_LITERAL,
+NUMBER_LITERAL,
+TRUE,
+FALSE,
+
+ECHO,
+AND,
+OR,
+NOT,
+
+PUBLIC,
+FUNCTION,
+RETURN,
+STRING_KEYWORD,
+INTEGER_KEYWORD,
+NUMBER_KEYWORD,
+BOOLEAN_KEYWORD,
+
+COMMA,
+COLON,
+PIPE,
+
+EOF_TOKEN,
+UNKNOWN,
+};
+
+inline DeclaredType tokenTypeToDeclaredType(TokenType type)
+{
+switch (type)
+{
+case TokenType::STRING_KEYWORD:
+return DeclaredType::STRING;
+case TokenType::INTEGER_KEYWORD:
+return DeclaredType::INTEGER;
+case TokenType::NUMBER_KEYWORD:
+return DeclaredType::NUMBER;
+case TokenType::BOOLEAN_KEYWORD:
+return DeclaredType::BOOLEAN;
+default:
+return DeclaredType::ANY;
+}
+}
+
+struct Token
+{
+TokenType type;
+std::string lexeme;
+std::variant<std::string, long long, double, bool, std::monostate> literal;
+int line;
+
+Token(TokenType type, std::string lexeme, std::variant<std::string, long long, double, bool, std::monostate> literal, int line)
+: type(type), lexeme(std::move(lexeme)), literal(std::move(literal)), line(line) {}
+
+Token(TokenType type, std::string lexeme, int line)
+: type(type), lexeme(std::move(lexeme)), literal(std::monostate{}), line(line) {}
+
+std::string toString() const;
+};
+
+#endif
+# /mcl/.prep_ai/../src/core/common/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "token.h"
+#include <map>
+#include <string>
+#include <iomanip>
+#include <sstream>
+
+static const std::map<TokenType, std::string> tokenTypeNames = {
+{TokenType::SEMICOLON, "SEMICOLON"},
+{TokenType::DOT, "DOT"},
+{TokenType::EQUAL, "EQUAL"},
+{TokenType::LEFT_PAREN, "LEFT_PAREN"},
+{TokenType::RIGHT_PAREN, "RIGHT_PAREN"},
+{TokenType::LEFT_BRACE, "LEFT_BRACE"},
+{TokenType::RIGHT_BRACE, "RIGHT_BRACE"},
+{TokenType::PLUS, "PLUS"},
+{TokenType::MINUS, "MINUS"},
+{TokenType::STAR, "STAR"},
+{TokenType::SLASH, "SLASH"},
+{TokenType::BANG, "BANG"},
+{TokenType::LESS, "LESS"},
+{TokenType::GREATER, "GREATER"},
+{TokenType::BANG_EQUAL, "BANG_EQUAL"},
+{TokenType::EQUAL_EQUAL, "EQUAL_EQUAL"},
+{TokenType::LESS_EQUAL, "LESS_EQUAL"},
+{TokenType::GREATER_EQUAL, "GREATER_EQUAL"},
+{TokenType::IDENTIFIER, "IDENTIFIER"},
+{TokenType::STRING_LITERAL, "STRING_LITERAL"},
+{TokenType::NUMBER_LITERAL, "NUMBER_LITERAL"},
+{TokenType::TRUE, "TRUE"},
+{TokenType::FALSE, "FALSE"},
+{TokenType::ECHO, "ECHO"},
+{TokenType::AND, "AND"},
+{TokenType::OR, "OR"},
+{TokenType::NOT, "NOT"},
+{TokenType::PUBLIC, "PUBLIC"},
+{TokenType::FUNCTION, "FUNCTION"},
+{TokenType::RETURN, "RETURN"},
+{TokenType::STRING_KEYWORD, "STRING_KEYWORD"},
+{TokenType::INTEGER_KEYWORD, "INTEGER_KEYWORD"},
+{TokenType::NUMBER_KEYWORD, "NUMBER_KEYWORD"},
+{TokenType::BOOLEAN_KEYWORD, "BOOLEAN_KEYWORD"},
+{TokenType::COMMA, "COMMA"},
+{TokenType::COLON, "COLON"},
+{TokenType::PIPE, "PIPE"},
+{TokenType::EOF_TOKEN, "EOF_TOKEN"},
+{TokenType::UNKNOWN, "UNKNOWN"},
+};
+
+std::string Token::toString() const
+{
+std::string typeName = tokenTypeNames.count(type) ? tokenTypeNames.at(type) : "UNKNOWN_TYPE";
+std::string str = typeName + " (\"" + lexeme + "\")";
+
+if (std::holds_alternative<std::string>(literal))
+{
+str += " -> \"" + std::get<std::string>(literal) + "\"";
+}
+else if (std::holds_alternative<long long>(literal))
+{
+str += " -> " + std::to_string(std::get<long long>(literal));
+}
+else if (std::holds_alternative<double>(literal))
+{
+std::stringstream ss;
+ss << std::setprecision(14) << std::get<double>(literal);
+str += " -> " + ss.str();
+}
+else if (std::holds_alternative<bool>(literal))
+{
+str += std::string(" -> ") + (std::get<bool>(literal) ? "true" : "false");
+}
+
+str += " at line " + std::to_string(line);
+
+return str;
+}
+# /mcl/.prep_ai/../src/core/parser/ast.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef AST_H
+#define AST_H
+
+#include <memory>
+#include <string>
+#include <vector>
+#include "../common/token.h"
+#include "../common/value.h"
+
+struct ASTNode
+{
+virtual ~ASTNode() = default;
+};
+
+struct StringLiteralExpr : public ASTNode
+{
+std::string value;
+StringLiteralExpr(std::string val) : value(std::move(val)) {}
+};
+
+struct NumberLiteralExpr : public ASTNode
+{
+double value;
+NumberLiteralExpr(double val) : value(val) {}
+};
+
+struct BooleanLiteralExpr : public ASTNode
+{
+bool value;
+BooleanLiteralExpr(bool val) : value(val) {}
+};
+
+struct VariableExpr : public ASTNode
+{
+std::string name;
+VariableExpr(std::string name) : name(std::move(name)) {}
+};
+
+struct BinaryOpExpr : public ASTNode
+{
+TokenType op;
+std::unique_ptr<ASTNode> left;
+std::unique_ptr<ASTNode> right;
+
+BinaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> left_expr, std::unique_ptr<ASTNode> right_expr)
+: op(op_type), left(std::move(left_expr)), right(std::move(right_expr)) {}
+};
+
+struct UnaryOpExpr : public ASTNode
+{
+TokenType op;
+std::unique_ptr<ASTNode> right;
+
+UnaryOpExpr(TokenType op_type, std::unique_ptr<ASTNode> right_expr)
+: op(op_type), right(std::move(right_expr)) {}
+};
+
+struct CallExpr : public ASTNode
+{
+std::unique_ptr<ASTNode> callee;
+std::vector<std::unique_ptr<ASTNode>> arguments;
+
+CallExpr(std::unique_ptr<ASTNode> callee_expr, std::vector<std::unique_ptr<ASTNode>> args)
+: callee(std::move(callee_expr)), arguments(std::move(args)) {}
+};
+
+struct AssignmentStatement : public ASTNode
+{
+std::unique_ptr<VariableExpr> target;
+std::unique_ptr<ASTNode> value;
+bool is_declaration;
+
+AssignmentStatement(std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> assigned_value, bool is_decl = false)
+: target(std::move(target_var)), value(std::move(assigned_value)), is_declaration(is_decl) {}
+};
+
+struct DeclarationStatement : public ASTNode
+{
+TokenType declared_type;
+std::unique_ptr<VariableExpr> target;
+std::unique_ptr<ASTNode> value;
+
+DeclarationStatement(TokenType type, std::unique_ptr<VariableExpr> target_var, std::unique_ptr<ASTNode> initial_value)
+: declared_type(type), target(std::move(target_var)), value(std::move(initial_value)) {}
+};
+
+struct EchoStatement : public ASTNode
+{
+std::unique_ptr<ASTNode> expression;
+
+EchoStatement(std::unique_ptr<ASTNode> expr_to_echo) : expression(std::move(expr_to_echo)) {}
+};
+
+struct ReturnStatement : public ASTNode
+{
+std::unique_ptr<ASTNode> expression;
+ReturnStatement(std::unique_ptr<ASTNode> expr) : expression(std::move(expr)) {}
+};
+
+struct BlockStatement : public ASTNode
+{
+std::vector<std::unique_ptr<ASTNode>> statements;
+BlockStatement() = default;
+};
+
+struct ParameterDeclaration
+{
+TokenType declared_type;
+std::string name;
+std::unique_ptr<ASTNode> default_value;
+
+ParameterDeclaration(TokenType type, std::string param_name, std::unique_ptr<ASTNode> def_val = nullptr)
+: declared_type(type), name(std::move(param_name)), default_value(std::move(def_val)) {}
+
+ParameterDeclaration(const ParameterDeclaration &) = delete;
+ParameterDeclaration &operator=(const ParameterDeclaration &) = delete;
+ParameterDeclaration(ParameterDeclaration &&) = default;
+ParameterDeclaration &operator=(ParameterDeclaration &&) = default;
+};
+
+struct FunctionDeclaration : public ASTNode
+{
+std::string name;
+std::vector<ParameterDeclaration> parameters;
+TokenType return_type;
+std::unique_ptr<BlockStatement> body;
+
+FunctionDeclaration(std::string func_name, std::vector<ParameterDeclaration> &&params, TokenType ret_type, std::unique_ptr<BlockStatement> func_body)
+: name(std::move(func_name)), parameters(std::move(params)), return_type(ret_type), body(std::move(func_body)) {}
+};
+
+struct ProgramNode : public ASTNode
+{
+std::vector<std::unique_ptr<ASTNode>> statements;
+ProgramNode() = default;
+};
+
+#endif
+# /mcl/.prep_ai/../src/core/parser/parser.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "parser.h"
+#include <iostream>
+#include <string>
+#include <stdexcept>
+
+Parser::Parser(Lexer &lexer) : lexer(lexer), currentToken(lexer.getNextToken())
+{
+}
+
+void Parser::advance()
+{
+currentToken = lexer.getNextToken();
+
+if (currentToken.type == TokenType::UNKNOWN)
+{
+throw std::runtime_error("Lexer returned UNKNOWN token: \"" + currentToken.lexeme + "\" at line " + std::to_string(currentToken.line) + ".");
+}
+}
+
+void Parser::consume(TokenType type)
+{
+if (currentToken.type == type)
+{
+advance();
+}
+else
+{
+throw std::runtime_error("Expected token type " + Token(type, "", 0).toString() + " but found " + currentToken.toString() + ".");
+}
+}
+
+TokenType Parser::consumeTypeKeyword()
+{
+TokenType type = currentToken.type;
+if (type == TokenType::STRING_KEYWORD ||
+type == TokenType::INTEGER_KEYWORD ||
+type == TokenType::NUMBER_KEYWORD ||
+type == TokenType::BOOLEAN_KEYWORD)
+{
+advance();
+return type;
+}
+throw std::runtime_error("Expected a type keyword (string, integer, number, boolean), but got " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::string Parser::consumeIdentifier()
+{
+if (currentToken.type == TokenType::IDENTIFIER)
+{
+std::string name = currentToken.lexeme;
+advance();
+return name;
+}
+throw std::runtime_error("Expected an identifier, but got " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::unique_ptr<ASTNode> Parser::parsePrimaryExpression()
+{
+if (currentToken.type == TokenType::STRING_LITERAL)
+{
+std::string value = std::get<std::string>(currentToken.literal);
+consume(TokenType::STRING_LITERAL);
+return std::make_unique<StringLiteralExpr>(value);
+}
+else if (currentToken.type == TokenType::NUMBER_LITERAL)
+{
+double value;
+if (std::holds_alternative<long long>(currentToken.literal))
+{
+value = static_cast<double>(std::get<long long>(currentToken.literal));
+}
+else
+{
+value = std::get<double>(currentToken.literal);
+}
+consume(TokenType::NUMBER_LITERAL);
+return std::make_unique<NumberLiteralExpr>(value);
+}
+else if (currentToken.type == TokenType::TRUE)
+{
+bool value = std::get<bool>(currentToken.literal);
+consume(TokenType::TRUE);
+return std::make_unique<BooleanLiteralExpr>(value);
+}
+else if (currentToken.type == TokenType::FALSE)
+{
+bool value = std::get<bool>(currentToken.literal);
+consume(TokenType::FALSE);
+return std::make_unique<BooleanLiteralExpr>(value);
+}
+else if (currentToken.type == TokenType::IDENTIFIER)
+{
+std::string name = currentToken.lexeme;
+consume(TokenType::IDENTIFIER);
+return std::make_unique<VariableExpr>(name);
+}
+else if (currentToken.type == TokenType::LEFT_PAREN)
+{
+consume(TokenType::LEFT_PAREN);
+std::unique_ptr<ASTNode> expr = parseExpression();
+consume(TokenType::RIGHT_PAREN);
+return expr;
+}
+
+throw std::runtime_error("Expected a primary expression (literal, variable, or parenthesized expression), but got " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::unique_ptr<ASTNode> Parser::parseCall()
+{
+std::unique_ptr<ASTNode> expr = parsePrimaryExpression();
+
+while (currentToken.type == TokenType::LEFT_PAREN)
+{
+consume(TokenType::LEFT_PAREN);
+std::vector<std::unique_ptr<ASTNode>> args;
+if (currentToken.type != TokenType::RIGHT_PAREN)
+{
+do
+{
+args.push_back(parseExpression());
+if (currentToken.type == TokenType::COMMA)
+{
+consume(TokenType::COMMA);
+}
+else
+{
+break;
+}
+} while (true);
+}
+consume(TokenType::RIGHT_PAREN);
+expr = std::make_unique<CallExpr>(std::move(expr), std::move(args));
+}
+return expr;
+}
+
+std::unique_ptr<ASTNode> Parser::parseUnary()
+{
+if (currentToken.type == TokenType::BANG ||
+currentToken.type == TokenType::MINUS ||
+currentToken.type == TokenType::NOT)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseUnary();
+return std::make_unique<UnaryOpExpr>(op, std::move(right));
+}
+return parseCall();
+}
+
+std::unique_ptr<ASTNode> Parser::parseFactor()
+{
+std::unique_ptr<ASTNode> left = parseUnary();
+
+while (currentToken.type == TokenType::STAR || currentToken.type == TokenType::SLASH)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseUnary();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseTerm()
+{
+std::unique_ptr<ASTNode> left = parseFactor();
+
+while (currentToken.type == TokenType::PLUS || currentToken.type == TokenType::MINUS)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseFactor();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseComparison()
+{
+std::unique_ptr<ASTNode> left = parseTerm();
+
+while (currentToken.type == TokenType::GREATER || currentToken.type == TokenType::GREATER_EQUAL ||
+currentToken.type == TokenType::LESS || currentToken.type == TokenType::LESS_EQUAL)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseTerm();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseEquality()
+{
+std::unique_ptr<ASTNode> left = parseComparison();
+
+while (currentToken.type == TokenType::BANG_EQUAL || currentToken.type == TokenType::EQUAL_EQUAL)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseComparison();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBitwiseOr()
+{
+std::unique_ptr<ASTNode> left = parseEquality();
+
+while (currentToken.type == TokenType::PIPE)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseEquality();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
+{
+std::unique_ptr<ASTNode> left = parseBitwiseOr();
+
+while (currentToken.type == TokenType::AND)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseBitwiseOr();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalOr()
+{
+std::unique_ptr<ASTNode> left = parseLogicalAnd();
+
+while (currentToken.type == TokenType::OR)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseLogicalAnd();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseConcatenation()
+{
+std::unique_ptr<ASTNode> left = parseLogicalOr();
+
+while (currentToken.type == TokenType::DOT)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseLogicalOr();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseExpression()
+{
+return parseConcatenation();
+}
+
+std::unique_ptr<EchoStatement> Parser::parseEchoStatement()
+{
+consume(TokenType::ECHO);
+std::unique_ptr<ASTNode> expr = parseExpression();
+consume(TokenType::SEMICOLON);
+return std::make_unique<EchoStatement>(std::move(expr));
+}
+
+std::unique_ptr<DeclarationStatement> Parser::parsePublicDeclarationStatement()
+{
+consume(TokenType::PUBLIC);
+TokenType declared_type_token = consumeTypeKeyword();
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+
+std::unique_ptr<ASTNode> value_expr = nullptr;
+if (currentToken.type == TokenType::EQUAL)
+{
+consume(TokenType::EQUAL);
+value_expr = parseExpression();
+}
+consume(TokenType::SEMICOLON);
+return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+}
+
+std::unique_ptr<DeclarationStatement> Parser::parseLocalDeclarationStatement()
+{
+TokenType declared_type_token = consumeTypeKeyword();
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(consumeIdentifier());
+
+std::unique_ptr<ASTNode> value_expr = nullptr;
+if (currentToken.type == TokenType::EQUAL)
+{
+consume(TokenType::EQUAL);
+value_expr = parseExpression();
+}
+consume(TokenType::SEMICOLON);
+return std::make_unique<DeclarationStatement>(declared_type_token, std::move(var_target), std::move(value_expr));
+}
+
+std::unique_ptr<ReturnStatement> Parser::parseReturnStatement()
+{
+consume(TokenType::RETURN);
+std::unique_ptr<ASTNode> expr = nullptr;
+if (currentToken.type != TokenType::SEMICOLON)
+{
+expr = parseExpression();
+}
+consume(TokenType::SEMICOLON);
+return std::make_unique<ReturnStatement>(std::move(expr));
+}
+
+std::unique_ptr<BlockStatement> Parser::parseBlock()
+{
+auto block = std::make_unique<BlockStatement>();
+consume(TokenType::LEFT_BRACE);
+while (currentToken.type != TokenType::RIGHT_BRACE && currentToken.type != TokenType::EOF_TOKEN)
+{
+block->statements.push_back(parseStatement());
+}
+consume(TokenType::RIGHT_BRACE);
+return block;
+}
+
+std::vector<ParameterDeclaration> Parser::parseParameterList()
+{
+std::vector<ParameterDeclaration> parameters;
+consume(TokenType::LEFT_PAREN);
+
+if (currentToken.type != TokenType::RIGHT_PAREN)
+{
+do
+{
+TokenType param_type = consumeTypeKeyword();
+std::string param_name = consumeIdentifier();
+std::unique_ptr<ASTNode> default_value = nullptr;
+
+if (currentToken.type == TokenType::EQUAL)
+{
+consume(TokenType::EQUAL);
+default_value = parseExpression();
+}
+parameters.emplace_back(param_type, param_name, std::move(default_value));
+
+if (currentToken.type == TokenType::COMMA)
+{
+consume(TokenType::COMMA);
+}
+else
+{
+break;
+}
+} while (true);
+}
+consume(TokenType::RIGHT_PAREN);
+return parameters;
+}
+
+std::unique_ptr<FunctionDeclaration> Parser::parseFunctionDeclaration()
+{
+consume(TokenType::FUNCTION);
+std::string func_name = consumeIdentifier();
+std::vector<ParameterDeclaration> parameters = parseParameterList();
+consume(TokenType::COLON);
+TokenType return_type = consumeTypeKeyword();
+std::unique_ptr<BlockStatement> body = parseBlock();
+
+return std::make_unique<FunctionDeclaration>(func_name, std::move(parameters), return_type, std::move(body));
+}
+
+std::unique_ptr<ASTNode> Parser::parseStatement()
+{
+if (currentToken.type == TokenType::ECHO)
+{
+return parseEchoStatement();
+}
+else if (currentToken.type == TokenType::PUBLIC)
+{
+return parsePublicDeclarationStatement();
+}
+else if (currentToken.type == TokenType::STRING_KEYWORD ||
+currentToken.type == TokenType::INTEGER_KEYWORD ||
+currentToken.type == TokenType::NUMBER_KEYWORD ||
+currentToken.type == TokenType::BOOLEAN_KEYWORD)
+{
+return parseLocalDeclarationStatement();
+}
+else if (currentToken.type == TokenType::RETURN)
+{
+return parseReturnStatement();
+}
+else if (currentToken.type == TokenType::IDENTIFIER)
+{
+std::string identifier_lexeme = currentToken.lexeme;
+int identifier_line = currentToken.line;
+advance();
+
+if (currentToken.type == TokenType::EQUAL)
+{
+std::unique_ptr<VariableExpr> var_target = std::make_unique<VariableExpr>(identifier_lexeme);
+consume(TokenType::EQUAL);
+std::unique_ptr<ASTNode> value_expr = parseExpression();
+consume(TokenType::SEMICOLON);
+return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
+}
+else if (currentToken.type == TokenType::LEFT_PAREN)
+{
+std::unique_ptr<VariableExpr> callee_expr = std::make_unique<VariableExpr>(identifier_lexeme);
+
+consume(TokenType::LEFT_PAREN);
+std::vector<std::unique_ptr<ASTNode>> args;
+if (currentToken.type != TokenType::RIGHT_PAREN)
+{
+do
+{
+args.push_back(parseExpression());
+if (currentToken.type == TokenType::COMMA)
+{
+consume(TokenType::COMMA);
+}
+else
+{
+break;
+}
+} while (true);
+}
+consume(TokenType::RIGHT_PAREN);
+consume(TokenType::SEMICOLON);
+return std::make_unique<CallExpr>(std::move(callee_expr), std::move(args));
+}
+else
+{
+throw std::runtime_error("Unexpected token after identifier '" + identifier_lexeme + "'. Expected '=' or '(', but got " +
+currentToken.toString() + " at line " + std::to_string(identifier_line) + ".");
+}
+}
+
+throw std::runtime_error("Unexpected token at the beginning of a statement: " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
+}
+
+std::unique_ptr<ASTNode> Parser::parseTopLevelStatement()
+{
+if (currentToken.type == TokenType::FUNCTION)
+{
+return parseFunctionDeclaration();
+}
+else
+{
+return parseStatement();
+}
+}
+
+std::unique_ptr<ProgramNode> Parser::parseProgram()
+{
+auto program = std::make_unique<ProgramNode>();
+
+while (currentToken.type != TokenType::EOF_TOKEN)
+{
+program->statements.push_back(parseTopLevelStatement());
+}
+return program;
+}
+# /mcl/.prep_ai/../src/core/parser/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef PARSER_H
+#define PARSER_H
+
+#include <vector>
+#include <string>
+#include <memory>
+#include "../lexer/lexer.h"
+#include "../parser/ast.h"
+#include "../common/token.h"
+
+class Parser
+{
+private:
+Lexer &lexer;
+Token currentToken;
+
+void advance();
+void consume(TokenType type);
+TokenType consumeTypeKeyword();
+std::string consumeIdentifier();
+
+std::unique_ptr<ASTNode> parsePrimaryExpression();
+std::unique_ptr<ASTNode> parseCall();
+std::unique_ptr<ASTNode> parseUnary();
+std::unique_ptr<ASTNode> parseFactor();
+std::unique_ptr<ASTNode> parseTerm();
+std::unique_ptr<ASTNode> parseComparison();
+std::unique_ptr<ASTNode> parseEquality();
+std::unique_ptr<ASTNode> parseBitwiseOr();
+std::unique_ptr<ASTNode> parseLogicalAnd();
+std::unique_ptr<ASTNode> parseLogicalOr();
+std::unique_ptr<ASTNode> parseConcatenation();
+std::unique_ptr<ASTNode> parseExpression();
+
+std::unique_ptr<EchoStatement> parseEchoStatement();
+std::unique_ptr<DeclarationStatement> parsePublicDeclarationStatement();
+std::unique_ptr<DeclarationStatement> parseLocalDeclarationStatement();
+std::unique_ptr<ReturnStatement> parseReturnStatement();
+std::unique_ptr<BlockStatement> parseBlock();
+std::vector<ParameterDeclaration> parseParameterList();
+std::unique_ptr<FunctionDeclaration> parseFunctionDeclaration();
+
+std::unique_ptr<ASTNode> parseStatement();
+std::unique_ptr<ASTNode> parseTopLevelStatement();
+
+public:
+Parser(Lexer &lexer);
+
+std::unique_ptr<ProgramNode> parseProgram();
+};
+
+#endif

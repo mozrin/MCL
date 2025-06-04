@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "lexer.h"
-#include "ast.h"
-#include "token.h"
+#include "../lexer/lexer.h"
+#include "../parser/ast.h"
+#include "../common/token.h"
 
 class Parser
 {

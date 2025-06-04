@@ -1,8 +1,8 @@
 #ifndef EXTENSION_CEILING_H
 #define EXTENSION_CEILING_H
 
-#include "../../core/value.h"
-#include "../../core/evaluator.h"
+#include "../../core/common/value.h"
+#include "../../core/runtime/evaluator.h"
 
 Value mcl_ceiling(const std::vector<Value> &args);
 
