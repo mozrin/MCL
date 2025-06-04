@@ -37,4 +37,4 @@ version() {
   uname -a
 }
 
-export PATH="$PATH:/nirvana/bin"
+export PATH="$PATH:/mlc/bin"

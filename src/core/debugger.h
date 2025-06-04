@@ -1,5 +1,5 @@
-#ifndef NIRVANA_DEBUGGER_H
-#define NIRVANA_DEBUGGER_H
+#ifndef MCL_DEBUGGER_H
+#define MCL_DEBUGGER_H
 
 #include <string>
 #include <memory>

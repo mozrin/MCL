@@ -15,7 +15,7 @@ bool is_alnum(char c) { return static_cast<bool>(std::isalnum(static_cast<unsign
 bool is_lower(char c) { return static_cast<bool>(std::islower(static_cast<unsigned char>(c))); }
 bool is_upper(char c) { return static_cast<bool>(std::isupper(static_cast<unsigned char>(c))); }
 
-Value nirvana_uppercase(const std::vector<Value> &args)
+Value mcl_uppercase(const std::vector<Value> &args)
 {
     if (args.empty() || args.size() > 2)
     {
@@ -205,5 +205,5 @@ Value nirvana_uppercase(const std::vector<Value> &args)
 
 void register_uppercase_extension(Evaluator &eval)
 {
-    eval.registerNativeFunction("uppercase", nirvana_uppercase);
+    eval.registerNativeFunction("uppercase", mcl_uppercase);
 }

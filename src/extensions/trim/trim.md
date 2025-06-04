@@ -148,7 +148,7 @@ To make the `trim` function available to your language interpreter or evaluator,
 ```cpp
 void register_trim_extension(Evaluator &eval)
 {
-    eval.registerNativeFunction("trim", nirvana_trim);
+    eval.registerNativeFunction("trim", mcl_trim);
 }
 ```
 

@@ -2,25 +2,8 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-We are going to create a src/helpers/ system
-
-I would like to do this through a configuration syntax
-and not really write a lot of code to support this feature
-
-We are going to create the ability for people to create
-helpers in the future. The system helpers will come first.
-
-I need a way to defined a helper function ... I am going to start
-them all with name- and them follow up with the system extension
-that they modify.
-
-left-trim(<string_to_trim>, [<chars_to_trim>])
-
-The chars_to_trim should default to the MCL_TRIM_CHARS_DEFAULT if
-not specificied by the user.
-
-Let's make this easy to configure. Thoughtsand discussion before
-we write any code.
+I want to change the internal name of everything from nirvana to MLC and the extension for language files from .nv to .MLC
+give me a list of everything taht needs to be changed 
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
@@ -29,13 +12,16 @@ DO NOT WRITE CODE UNLESS I ASK!
 
 /nirvana/.prep_ai/../src/
 ├── core/
-└── extensions/
-    ├── abs/
-    ├── sqrt/
-    ├── trim/
-    └── uppercase/
+├── extensions/
+│   ├── abs/
+│   ├── sqrt/
+│   ├── trim/
+│   └── uppercase/
+└── helpers/
+    ├── system/
+    └── user/
 
-7 directories, 0 files
+10 directories, 0 files
 
 --- Baseline File Contents ---
 
@@ -534,6 +520,7 @@ void register_trim_extension(Evaluator &eval);
 #define MCL_TRIM_ALL 7
 
 #define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
+#define MCL_TRIM_CHARS_SPACE " "
 # /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "sqrt.h"
 #include <cmath>
@@ -603,6 +590,7 @@ void register_sqrt_extension(Evaluator &eval);
 #include "core/constants.h"
 #include "core/debugger.h"
 #include "extensions/extensions.h"
+#include "helpers/helpers.h"
 
 namespace fs = std::filesystem;
 
@@ -653,7 +641,6 @@ debug_print_ast_footer();
 
 debug_print_message("Starting interpretation for '" + filename + "'...");
 Evaluator evaluator;
-registerAllExtensions(evaluator);
 
 evaluator.registerConstant("MCL_UPPERCASE_EVERYTHING", (long long)MCL_UPPERCASE_EVERYTHING);
 evaluator.registerConstant("MCL_UPPERCASE_TITLE", (long long)MCL_UPPERCASE_TITLE);
@@ -667,6 +654,9 @@ evaluator.registerConstant("MCL_TRIM_MIDDLE", (long long)MCL_TRIM_MIDDLE);
 evaluator.registerConstant("MCL_TRIM_ENDS", (long long)MCL_TRIM_ENDS);
 evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
 evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
+
+registerAllExtensions(evaluator);
+registerAllHelpers(evaluator);
 
 try
 {
@@ -751,7 +741,7 @@ return files;
 
 int main(int argc, char *argv[])
 {
-debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
+debug_print_message("MCL starting (Lexer + Parser + Evaluator)...");
 
 std::vector<std::string> files_to_run;
 int overall_exit_code = 0;
@@ -784,8 +774,462 @@ overall_exit_code = 1;
 }
 }
 
-debug_print_message("Nirvana MVI finished.");
+debug_print_message("MCL finished.");
 return overall_exit_code;
+}
+# /nirvana/.prep_ai/../src/helpers/helpers.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef HELPERS_H
+#define HELPERS_H
+
+#include "core/evaluator.h"
+#include "core/value.h"
+#include "core/token.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <variant>
+#include <sstream>
+#include <cmath>
+
+enum class ParameterKind
+{
+REQUIRED,
+OPTIONAL,
+FIXED
+};
+
+struct ParameterDefinition
+{
+ParameterKind kind;
+DeclaredType expected_type;
+std::string config_value_str;
+Value resolved_value;
+
+ParameterDefinition() : kind(ParameterKind::REQUIRED), expected_type(DeclaredType::ANY) {}
+};
+
+struct HelperDefinition
+{
+std::string helper_name;
+std::string extension_name;
+std::vector<ParameterDefinition> parameters;
+};
+
+void registerAllHelpers(Evaluator &eval);
+
+inline std::string get_string_arg(const std::vector<Value> &args, size_t index, const std::string &func_name, const std::string &arg_name)
+{
+if (index >= args.size())
+{
+throw std::runtime_error("Function '" + func_name + "': Missing argument " + arg_name + " at index " + std::to_string(index) + ".");
+}
+if (std::holds_alternative<std::string>(args[index]))
+{
+return std::get<std::string>(args[index]);
+}
+std::stringstream ss;
+ss << "Function '" << func_name << "': Argument " << arg_name << " must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[index]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+inline long long get_integer_arg(const std::vector<Value> &args, size_t index, const std::string &func_name, const std::string &arg_name)
+{
+if (index >= args.size())
+{
+throw std::runtime_error("Function '" + func_name + "': Missing argument " + arg_name + " at index " + std::to_string(index) + ".");
+}
+if (std::holds_alternative<long long>(args[index]))
+{
+return std::get<long long>(args[index]);
+}
+else if (std::holds_alternative<double>(args[index]))
+{
+double d_val = std::get<double>(args[index]);
+if (d_val != std::floor(d_val))
+{
+std::stringstream ss;
+ss << "Function '" << func_name << "': Argument " << arg_name << " must be an integer, but got " << d_val << ".";
+throw std::runtime_error(ss.str());
+}
+return static_cast<long long>(d_val);
+}
+std::stringstream ss;
+ss << "Function '" << func_name << "': Argument " << arg_name << " must be an integer (integer or number), but got value of type ";
+switch (valueTypeToDeclaredType(args[index]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+inline Value get_number_arg(const std::vector<Value> &args, size_t index, const std::string &func_name, const std::string &arg_name)
+{
+if (index >= args.size())
+{
+throw std::runtime_error("Function '" + func_name + "': Missing argument " + arg_name + " at index " + std::to_string(index) + ".");
+}
+if (std::holds_alternative<long long>(args[index]) || std::holds_alternative<double>(args[index]))
+{
+return args[index];
+}
+std::stringstream ss;
+ss << "Function '" << func_name << "': Argument " << arg_name << " must be a number (integer or number), but got value of type ";
+switch (valueTypeToDeclaredType(args[index]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+#endif
+# /nirvana/.prep_ai/../src/helpers/helpers.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "helpers.h"
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+#include <regex>
+#include <iostream>
+#include <stdexcept>
+#include <limits>
+
+namespace fs = std::filesystem;
+
+static Value parseLiteralString(const std::string &s)
+{
+if (s.length() >= 2 && s.front() == '"' && s.back() == '"')
+{
+std::string unquoted_s = s.substr(1, s.length() - 2);
+std::string result;
+result.reserve(unquoted_s.length());
+for (size_t i = 0; i < unquoted_s.length(); ++i)
+{
+if (unquoted_s[i] == '\\' && i + 1 < unquoted_s.length())
+{
+switch (unquoted_s[i + 1])
+{
+case '"':
+result += '"';
+break;
+case '\\':
+result += '\\';
+break;
+case 'n':
+result += '\n';
+break;
+case 't':
+result += '\t';
+break;
+default:
+result += unquoted_s[i + 1];
+break;
+}
+i++;
+}
+else
+{
+result += unquoted_s[i];
+}
+}
+return result;
+}
+return s;
+}
+
+static Value parseNumericOrBooleanLiteral(const std::string &s)
+{
+if (s == "true")
+return true;
+if (s == "false")
+return false;
+
+std::istringstream iss(s);
+long long ll_val;
+if (iss >> ll_val && iss.eof())
+{
+return ll_val;
+}
+
+iss.clear();
+iss.str(s);
+double d_val;
+if (iss >> d_val && iss.eof())
+{
+return d_val;
+}
+return std::monostate{};
+}
+
+static ParameterDefinition parseParameterLine(Evaluator &eval, const std::string &line)
+{
+ParameterDefinition def;
+std::string param_str = line.substr(line.find('=') + 1);
+param_str = std::regex_replace(param_str, std::regex("^\\s+|\\s+$"), "");
+
+std::regex required_regex("<(string|integer|number|boolean)>");
+std::regex optional_regex("\\[([^\\]]+)\\]");
+
+std::smatch match;
+
+if (std::regex_match(param_str, match, required_regex))
+{
+def.kind = ParameterKind::REQUIRED;
+def.config_value_str = match[1].str();
+if (def.config_value_str == "string")
+def.expected_type = DeclaredType::STRING;
+else if (def.config_value_str == "integer")
+def.expected_type = DeclaredType::INTEGER;
+else if (def.config_value_str == "number")
+def.expected_type = DeclaredType::NUMBER;
+else if (def.config_value_str == "boolean")
+def.expected_type = DeclaredType::BOOLEAN;
+else
+throw std::runtime_error("Unknown type in required parameter: " + def.config_value_str);
+}
+else if (std::regex_match(param_str, match, optional_regex))
+{
+def.kind = ParameterKind::OPTIONAL;
+def.config_value_str = match[1].str();
+
+def.resolved_value = parseLiteralString(def.config_value_str);
+if (std::holds_alternative<std::string>(def.resolved_value) && std::get<std::string>(def.resolved_value) == def.config_value_str)
+{
+def.resolved_value = parseNumericOrBooleanLiteral(def.config_value_str);
+}
+
+if (std::holds_alternative<std::monostate>(def.resolved_value))
+{
+try
+{
+def.resolved_value = eval.getConstant(def.config_value_str);
+}
+catch (const std::runtime_error &e)
+{
+throw std::runtime_error("Helper config error: Optional parameter default '" + def.config_value_str + "' is not a valid literal or constant: " + e.what());
+}
+}
+}
+else
+{
+def.kind = ParameterKind::FIXED;
+def.config_value_str = param_str;
+
+def.resolved_value = parseLiteralString(def.config_value_str);
+if (std::holds_alternative<std::string>(def.resolved_value) && std::get<std::string>(def.resolved_value) == def.config_value_str)
+{
+def.resolved_value = parseNumericOrBooleanLiteral(def.config_value_str);
+}
+
+if (std::holds_alternative<std::monostate>(def.resolved_value))
+{
+try
+{
+def.resolved_value = eval.getConstant(def.config_value_str);
+}
+catch (const std::runtime_error &e)
+{
+throw std::runtime_error("Helper config error: Fixed parameter value '" + def.config_value_str + "' is not a valid literal or constant: " + e.what());
+}
+}
+}
+return def;
+}
+
+static HelperDefinition loadIndividualHelperConfig(Evaluator &eval, const fs::path &config_file_path)
+{
+std::ifstream file(config_file_path);
+if (!file.is_open())
+{
+throw std::runtime_error("Could not open helper config file: " + config_file_path.string());
+}
+
+HelperDefinition helper_def;
+std::string line;
+
+while (std::getline(file, line))
+{
+if (line.empty() || line.find_first_not_of(" \t\n\r") == std::string::npos)
+continue;
+
+size_t eq_pos = line.find('=');
+if (eq_pos == std::string::npos)
+{
+throw std::runtime_error("Invalid line in helper config '" + config_file_path.string() + "': " + line + ". Expected 'key=value'.");
+}
+
+std::string key = line.substr(0, eq_pos);
+key = std::regex_replace(key, std::regex("^\\s+|\\s+$"), "");
+
+if (key == "name")
+{
+helper_def.helper_name = line.substr(eq_pos + 1);
+helper_def.helper_name = std::regex_replace(helper_def.helper_name, std::regex("^\\s+|\\s+$"), "");
+}
+else if (key == "extension")
+{
+helper_def.extension_name = line.substr(eq_pos + 1);
+helper_def.extension_name = std::regex_replace(helper_def.extension_name, std::regex("^\\s+|\\s+$"), "");
+}
+else if (key.rfind("parameter_", 0) == 0)
+{
+helper_def.parameters.push_back(parseParameterLine(eval, line));
+}
+else
+{
+std::cerr << "Warning: Unknown key '" << key << "' in helper config file: " << config_file_path.string() << std::endl;
+}
+}
+
+if (helper_def.helper_name.empty())
+{
+throw std::runtime_error("Helper config '" + config_file_path.string() + "' is missing 'name' field.");
+}
+if (helper_def.extension_name.empty())
+{
+throw std::runtime_error("Helper config '" + config_file_path.string() + "' is missing 'extension' field.");
+}
+
+return helper_def;
+}
+
+static std::vector<HelperDefinition> loadHelperDefinitions(Evaluator &eval, const std::string &system_helpers_dir)
+{
+std::vector<HelperDefinition> definitions;
+fs::path helpers_path = system_helpers_dir;
+
+if (!fs::exists(helpers_path) || !fs::is_directory(helpers_path))
+{
+throw std::runtime_error("System helpers directory not found: " + helpers_path.string());
+}
+
+for (const auto &entry : fs::directory_iterator(helpers_path))
+{
+if (entry.is_regular_file() && entry.path().extension() == ".config")
+{
+HelperDefinition def = loadIndividualHelperConfig(eval, entry.path());
+definitions.push_back(def);
+}
+}
+return definitions;
+}
+
+void registerAllHelpers(Evaluator &eval)
+{
+std::vector<HelperDefinition> helper_defs = loadHelperDefinitions(eval, "src/helpers/system");
+
+for (const auto &h_def : helper_defs)
+{
+eval.registerNativeFunction(h_def.helper_name,
+[&eval, h_def](const std::vector<Value> &user_args) -> Value
+{
+std::vector<Value> extension_args;
+size_t user_arg_idx = 0;
+size_t required_count = 0;
+size_t optional_count = 0;
+
+for (const auto &param_def : h_def.parameters)
+{
+if (param_def.kind == ParameterKind::REQUIRED)
+{
+required_count++;
+}
+else if (param_def.kind == ParameterKind::OPTIONAL)
+{
+optional_count++;
+}
+}
+
+if (user_args.size() < required_count || user_args.size() > (required_count + optional_count))
+{
+std::stringstream ss;
+ss << "Helper '" << h_def.helper_name << "' expects between " << required_count << " and " << (required_count + optional_count) << " arguments, but received " << user_args.size() << ".";
+throw std::runtime_error(ss.str());
+}
+
+for (const auto &param_def : h_def.parameters)
+{
+if (param_def.kind == ParameterKind::REQUIRED)
+{
+if (user_arg_idx >= user_args.size())
+{
+throw std::runtime_error("Internal error: Missing required argument for helper '" + h_def.helper_name + "'.");
+}
+if (param_def.expected_type == DeclaredType::STRING)
+{
+extension_args.push_back(get_string_arg(user_args, user_arg_idx, h_def.helper_name, "user_arg_" + std::to_string(user_arg_idx + 1)));
+}
+else if (param_def.expected_type == DeclaredType::INTEGER)
+{
+extension_args.push_back(get_integer_arg(user_args, user_arg_idx, h_def.helper_name, "user_arg_" + std::to_string(user_arg_idx + 1)));
+}
+else if (param_def.expected_type == DeclaredType::NUMBER)
+{
+extension_args.push_back(get_number_arg(user_args, user_arg_idx, h_def.helper_name, "user_arg_" + std::to_string(user_arg_idx + 1)));
+}
+else if (param_def.expected_type == DeclaredType::BOOLEAN)
+{
+if (!std::holds_alternative<bool>(user_args[user_arg_idx]))
+{
+throw std::runtime_error("Helper '" + h_def.helper_name + "': Argument " + std::to_string(user_arg_idx + 1) + " must be a boolean.");
+}
+extension_args.push_back(user_args[user_arg_idx]);
+}
+user_arg_idx++;
+}
+else if (param_def.kind == ParameterKind::OPTIONAL)
+{
+if (user_arg_idx < user_args.size())
+{
+extension_args.push_back(user_args[user_arg_idx]);
+user_arg_idx++;
+}
+else
+{
+extension_args.push_back(param_def.resolved_value);
+}
+}
+else
+{
+extension_args.push_back(param_def.resolved_value);
+}
+}
+
+return eval.callNativeFunctionByName(h_def.extension_name, extension_args);
+});
+}
 }
 # /nirvana/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef LEXER_H
@@ -1574,6 +2018,8 @@ Evaluator();
 void registerNativeFunction(const std::string &name, NativeFunction func);
 void registerConstant(const std::string &name, Value value);
 void interpret(std::unique_ptr<ProgramNode> ast);
+Value callNativeFunctionByName(const std::string &name, const std::vector<Value> &args);
+Value getConstant(const std::string &name);
 };
 
 #endif
@@ -2205,6 +2651,26 @@ void Evaluator::interpret(std::unique_ptr<ProgramNode> ast)
 {
 evaluate(ast.get());
 }
+
+Value Evaluator::callNativeFunctionByName(const std::string &name, const std::vector<Value> &args)
+{
+auto it = nativeFunctions.find(name);
+if (it == nativeFunctions.end())
+{
+throw std::runtime_error("Runtime error: Attempted to call unknown native function '" + name + "'.");
+}
+return it->second(args);
+}
+
+Value Evaluator::getConstant(const std::string &name)
+{
+auto it = variables.find(name);
+if (it == variables.end())
+{
+throw std::runtime_error("Runtime error: Undefined constant '" + name + "'.");
+}
+return it->second.first;
+}
 # /nirvana/.prep_ai/../src/core/token.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "token.h"
 #include <map>
@@ -2394,7 +2860,7 @@ if (peek() == '$')
 lexeme += advance();
 }
 
-while (std::isalnum(peek()) || peek() == '_')
+while (std::isalnum(peek()) || peek() == '_' || peek() == '-')
 {
 lexeme += advance();
 }

@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <variant>
 
-Value nirvana_abs(const std::vector<Value> &args)
+Value mcl_abs(const std::vector<Value> &args)
 {
     if (args.size() != 1)
     {
@@ -28,5 +28,5 @@ Value nirvana_abs(const std::vector<Value> &args)
 
 void register_abs_extension(Evaluator &eval)
 {
-    eval.registerNativeFunction("abs", nirvana_abs);
+    eval.registerNativeFunction("abs", mcl_abs);
 }

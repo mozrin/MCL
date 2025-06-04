@@ -7,7 +7,7 @@
 #include <sstream>
 #include <cmath>
 
-Value nirvana_trim(const std::vector<Value> &args)
+Value mcl_trim(const std::vector<Value> &args)
 {
     if (args.empty() || args.size() > 3)
     {
@@ -173,5 +173,5 @@ Value nirvana_trim(const std::vector<Value> &args)
 
 void register_trim_extension(Evaluator &eval)
 {
-    eval.registerNativeFunction("trim", nirvana_trim);
+    eval.registerNativeFunction("trim", mcl_trim);
 }

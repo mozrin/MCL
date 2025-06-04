@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <variant>
 
-Value nirvana_sqrt(const std::vector<Value> &args)
+Value mcl_sqrt(const std::vector<Value> &args)
 {
     if (args.size() != 1)
     {
@@ -34,5 +34,5 @@ Value nirvana_sqrt(const std::vector<Value> &args)
 
 void register_sqrt_extension(Evaluator &eval)
 {
-    eval.registerNativeFunction("sqrt", nirvana_sqrt);
+    eval.registerNativeFunction("sqrt", mcl_sqrt);
 }
