@@ -41,6 +41,8 @@ public:
     void registerNativeFunction(const std::string &name, NativeFunction func);
     void registerConstant(const std::string &name, Value value);
     void interpret(std::unique_ptr<ProgramNode> ast);
+    Value callNativeFunctionByName(const std::string &name, const std::vector<Value> &args);
+    Value getConstant(const std::string &name);
 };
 
 #endif

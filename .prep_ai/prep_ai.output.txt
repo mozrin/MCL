@@ -2,16 +2,25 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-I want to modify the main to run more than one file. Specifically ... I want to be able 
-to fun *.nv or test/*.nv
+We are going to create a src/helpers/ system
 
-I want all of these to work
+I would like to do this through a configuration syntax
+and not really write a lot of code to support this feature
 
-nirvana
-nirvana bob.nv
-nirvana *.nv
-nirvana test_*.nv
-nirvana tests/*.nv
+We are going to create the ability for people to create
+helpers in the future. The system helpers will come first.
+
+I need a way to defined a helper function ... I am going to start
+them all with name- and them follow up with the system extension
+that they modify.
+
+left-trim(<string_to_trim>, [<chars_to_trim>])
+
+The chars_to_trim should default to the MCL_TRIM_CHARS_DEFAULT if
+not specificied by the user.
+
+Let's make this easy to configure. Thoughtsand discussion before
+we write any code.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
@@ -23,9 +32,10 @@ DO NOT WRITE CODE UNLESS I ASK!
 └── extensions/
     ├── abs/
     ├── sqrt/
+    ├── trim/
     └── uppercase/
 
-6 directories, 0 files
+7 directories, 0 files
 
 --- Baseline File Contents ---
 
@@ -239,6 +249,12 @@ void register_uppercase_extension(Evaluator &eval)
 {
 eval.registerNativeFunction("uppercase", nirvana_uppercase);
 }
+# /nirvana/.prep_ai/../src/extensions/uppercase/uppercase_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#define MCL_UPPERCASE_EVERYTHING 1
+#define MCL_UPPERCASE_TITLE 2
+#define MCL_UPPERCASE_FIRST 3
+#define MCL_UPPERCASE_ALTERNATING 4
+#define MCL_UPPERCASE_TOGGLE 5
 # /nirvana/.prep_ai/../src/extensions/uppercase/uppercase.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_UPPERCASE_H
 #define EXTENSION_UPPERCASE_H
@@ -259,6 +275,7 @@ void registerAllExtensions(Evaluator &eval)
 register_abs_extension(eval);
 register_sqrt_extension(eval);
 register_uppercase_extension(eval);
+register_trim_extension(eval);
 }
 # /nirvana/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
@@ -314,10 +331,209 @@ eval.registerNativeFunction("abs", nirvana_abs);
 #include "abs/abs.h"
 #include "sqrt/sqrt.h"
 #include "uppercase/uppercase.h"
+#include "trim/trim.h"
 
 void registerAllExtensions(Evaluator &eval);
 
 #endif
+# /nirvana/.prep_ai/../src/extensions/trim/trim.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "trim.h"
+#include "../../core/constants.h"
+#include <string>
+#include <vector>
+#include <stdexcept>
+#include <variant>
+#include <sstream>
+#include <cmath>
+
+Value nirvana_trim(const std::vector<Value> &args)
+{
+if (args.empty() || args.size() > 3)
+{
+throw std::runtime_error("Function 'trim' expects 1 to 3 arguments: trim(string $str, string $characters=\" \\t\\n\\r\\0\\x0B\", int $operation=MCL_TRIM_ENDS).");
+}
+
+std::string input_str;
+if (std::holds_alternative<std::string>(args[0]))
+{
+input_str = std::get<std::string>(args[0]);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'trim': Argument 1 ($str) must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+std::string characters_to_trim = " \t\n\r\0\x0B";
+if (args.size() >= 2)
+{
+if (std::holds_alternative<std::string>(args[1]))
+{
+characters_to_trim = std::get<std::string>(args[1]);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'trim': Argument 2 ($characters) must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[1]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+}
+
+long long operation = MCL_TRIM_ENDS;
+if (args.size() == 3)
+{
+if (std::holds_alternative<long long>(args[2]))
+{
+operation = std::get<long long>(args[2]);
+}
+else if (std::holds_alternative<double>(args[2]))
+{
+double d_op = std::get<double>(args[2]);
+if (d_op != std::floor(d_op))
+{
+std::stringstream ss;
+ss << "Function 'trim': Argument 3 ($operation) must be an integer, but got " << d_op << ".";
+throw std::runtime_error(ss.str());
+}
+operation = static_cast<long long>(d_op);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'trim': Argument 3 ($operation) must be an integer (integer or number), but got value of type ";
+switch (valueTypeToDeclaredType(args[2]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+if (operation < 0 || (operation & ~MCL_TRIM_ALL) != 0)
+{
+std::stringstream ss;
+ss << "Function 'trim': Invalid operation constant " << operation << ". Valid values are combinations of MCL_TRIM_LEFT (1), MCL_TRIM_RIGHT (2), MCL_TRIM_MIDDLE (4), MCL_TRIM_ENDS (3), MCL_TRIM_ALL (7).";
+throw std::runtime_error(ss.str());
+}
+}
+
+std::string result_str = input_str;
+
+if (operation & MCL_TRIM_LEFT)
+{
+size_t first_char = result_str.find_first_not_of(characters_to_trim);
+if (first_char == std::string::npos)
+{
+return "";
+}
+result_str = result_str.substr(first_char);
+}
+
+if (operation & MCL_TRIM_RIGHT)
+{
+size_t last_char = result_str.find_last_not_of(characters_to_trim);
+if (last_char == std::string::npos)
+{
+return "";
+}
+result_str = result_str.substr(0, last_char + 1);
+}
+
+if (operation & MCL_TRIM_MIDDLE)
+{
+if (!characters_to_trim.empty())
+{
+std::string temp_str;
+temp_str.reserve(result_str.length());
+bool in_trim_sequence = false;
+for (char c : result_str)
+{
+if (characters_to_trim.find(c) != std::string::npos)
+{
+if (!in_trim_sequence)
+{
+temp_str += c;
+in_trim_sequence = true;
+}
+}
+else
+{
+temp_str += c;
+in_trim_sequence = false;
+}
+}
+result_str = temp_str;
+}
+}
+
+return result_str;
+}
+
+void register_trim_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("trim", nirvana_trim);
+}
+# /nirvana/.prep_ai/../src/extensions/trim/trim.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_TRIM_H
+#define EXTENSION_TRIM_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value nirvana_trim(const std::vector<Value> &args);
+
+void register_trim_extension(Evaluator &eval);
+
+#endif
+# /nirvana/.prep_ai/../src/extensions/trim/trim_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#define MCL_TRIM_LEFT 1
+#define MCL_TRIM_RIGHT 2
+#define MCL_TRIM_MIDDLE 4
+#define MCL_TRIM_ENDS 3
+#define MCL_TRIM_ALL 7
+
+#define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
 # /nirvana/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "sqrt.h"
 #include <cmath>
@@ -445,6 +661,13 @@ evaluator.registerConstant("MCL_UPPERCASE_FIRST", (long long)MCL_UPPERCASE_FIRST
 evaluator.registerConstant("MCL_UPPERCASE_ALTERNATING", (long long)MCL_UPPERCASE_ALTERNATING);
 evaluator.registerConstant("MCL_UPPERCASE_TOGGLE", (long long)MCL_UPPERCASE_TOGGLE);
 
+evaluator.registerConstant("MCL_TRIM_LEFT", (long long)MCL_TRIM_LEFT);
+evaluator.registerConstant("MCL_TRIM_RIGHT", (long long)MCL_TRIM_RIGHT);
+evaluator.registerConstant("MCL_TRIM_MIDDLE", (long long)MCL_TRIM_MIDDLE);
+evaluator.registerConstant("MCL_TRIM_ENDS", (long long)MCL_TRIM_ENDS);
+evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
+evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
+
 try
 {
 evaluator.interpret(std::move(ast));
@@ -531,10 +754,39 @@ int main(int argc, char *argv[])
 debug_print_message("Nirvana MVI starting (Lexer + Parser + Evaluator)...");
 
 std::vector<std::string> files_to_run;
+int overall_exit_code = 0;
 
 if (argc == 1)
 {
+files_to_run.push_back("main.nv");
+}
+else
+{
+for (int i = 1; i < argc; ++i)
+{
+std::vector<std::string> matched_files = get_files_from_pattern(argv[i]);
+files_to_run.insert(files_to_run.end(), matched_files.begin(), matched_files.end());
+}
+}
 
+if (files_to_run.empty())
+{
+std::cerr << "Error: No Nirvana files found to process based on provided arguments." << std::endl;
+return 1;
+}
+
+for (const std::string &filename : files_to_run)
+{
+int file_exit_code = process_single_file(filename);
+if (file_exit_code != 0)
+{
+overall_exit_code = 1;
+}
+}
+
+debug_print_message("Nirvana MVI finished.");
+return overall_exit_code;
+}
 # /nirvana/.prep_ai/../src/core/lexer.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef LEXER_H
 #define LEXER_H
@@ -670,6 +922,7 @@ ProgramNode() = default;
 #include "parser.h"
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 Parser::Parser(Lexer &lexer) : lexer(lexer), currentToken(lexer.getNextToken())
 {
@@ -681,8 +934,7 @@ currentToken = lexer.getNextToken();
 
 if (currentToken.type == TokenType::UNKNOWN)
 {
-std::cerr << "Parser error: Lexer returned UNKNOWN token: \"" << currentToken.lexeme << "\" at line " << currentToken.line << ". Aborting.\n";
-exit(1);
+throw std::runtime_error("Lexer returned UNKNOWN token: \"" + currentToken.lexeme + "\" at line " + std::to_string(currentToken.line) + ".");
 }
 }
 
@@ -694,9 +946,7 @@ advance();
 }
 else
 {
-std::cerr << "Parser error: Expected token type " << Token(type, "", 0).toString()
-<< " but found " << currentToken.toString() << ".\n";
-exit(1);
+throw std::runtime_error("Expected token type " + Token(type, "", 0).toString() + " but found " + currentToken.toString() + ".");
 }
 }
 
@@ -748,9 +998,8 @@ consume(TokenType::RIGHT_PAREN);
 return expr;
 }
 
-std::cerr << "Parser error at line " << currentToken.line << ": Expected a primary expression (literal, variable, or parenthesized expression), but got "
-<< currentToken.toString() << ".\n";
-exit(1);
+throw std::runtime_error("Expected a primary expression (literal, variable, or parenthesized expression), but got " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
 }
 
 std::unique_ptr<ASTNode> Parser::parseCall()
@@ -853,15 +1102,29 @@ left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
 return left;
 }
 
-std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
+std::unique_ptr<ASTNode> Parser::parseBitwiseOr()
 {
 std::unique_ptr<ASTNode> left = parseEquality();
+
+while (currentToken.type == TokenType::PIPE)
+{
+TokenType op = currentToken.type;
+advance();
+std::unique_ptr<ASTNode> right = parseEquality();
+left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
+}
+return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalAnd()
+{
+std::unique_ptr<ASTNode> left = parseBitwiseOr();
 
 while (currentToken.type == TokenType::AND)
 {
 TokenType op = currentToken.type;
 advance();
-std::unique_ptr<ASTNode> right = parseEquality();
+std::unique_ptr<ASTNode> right = parseBitwiseOr();
 left = std::make_unique<BinaryOpExpr>(op, std::move(left), std::move(right));
 }
 return left;
@@ -919,9 +1182,8 @@ declared_type_token != TokenType::INTEGER_KEYWORD &&
 declared_type_token != TokenType::NUMBER_KEYWORD &&
 declared_type_token != TokenType::BOOLEAN_KEYWORD)
 {
-std::cerr << "Parser error at line " << currentToken.line << ": Expected a type keyword (string, integer, number, boolean) after 'public', but got "
-<< currentToken.toString() << ".\n";
-exit(1);
+throw std::runtime_error("Expected a type keyword (string, integer, number, boolean) after 'public', but got " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
 }
 consume(declared_type_token);
 
@@ -948,9 +1210,8 @@ consume(TokenType::SEMICOLON);
 return std::make_unique<AssignmentStatement>(std::move(var_target), std::move(value_expr), false);
 }
 
-std::cerr << "Parser error at line " << currentToken.line << ": Unexpected token at the beginning of a statement: "
-<< currentToken.toString() << ".\n";
-exit(1);
+throw std::runtime_error("Unexpected token at the beginning of a statement: " +
+currentToken.toString() + " at line " + std::to_string(currentToken.line) + ".");
 }
 
 std::unique_ptr<ProgramNode> Parser::parseProgram()
@@ -1058,13 +1319,8 @@ return os;
 #ifndef NIRVANA_CONSTANTS_H
 #define NIRVANA_CONSTANTS_H
 
-
-
-#define MCL_UPPERCASE_EVERYTHING 1
-#define MCL_UPPERCASE_TITLE 2
-#define MCL_UPPERCASE_FIRST 3
-#define MCL_UPPERCASE_ALTERNATING 4
-#define MCL_UPPERCASE_TOGGLE 5
+#include "../extensions/trim/trim_constants.h"
+#include "../extensions/uppercase/uppercase_constants.h"
 
 #endif
 # /nirvana/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
@@ -1116,6 +1372,7 @@ NUMBER_KEYWORD,
 BOOLEAN_KEYWORD,
 
 COMMA,
+PIPE,
 
 EOF_TOKEN,
 UNKNOWN,
@@ -1321,7 +1578,6 @@ void interpret(std::unique_ptr<ProgramNode> ast);
 
 #endif
 # /nirvana/.prep_ai/../src/core/parser.h # NOT PART OF CODE DON'T ECHO IT EVER #
-
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -1345,6 +1601,7 @@ std::unique_ptr<ASTNode> parseStatement();
 std::unique_ptr<ASTNode> parseExpression();
 std::unique_ptr<ASTNode> parseLogicalOr();
 std::unique_ptr<ASTNode> parseLogicalAnd();
+std::unique_ptr<ASTNode> parseBitwiseOr();
 std::unique_ptr<ASTNode> parseEquality();
 std::unique_ptr<ASTNode> parseComparison();
 std::unique_ptr<ASTNode> parseTerm();
@@ -1887,6 +2144,59 @@ else if (node->op == TokenType::AND || node->op == TokenType::OR)
 
 return performBooleanBinaryOp(left_val, right_val, node->op);
 }
+else if (node->op == TokenType::PIPE)
+{
+long long left_int_val;
+long long right_int_val;
+
+if (std::holds_alternative<long long>(left_val))
+{
+left_int_val = std::get<long long>(left_val);
+}
+else if (std::holds_alternative<double>(left_val))
+{
+double d_val = std::get<double>(left_val);
+long long ll_val = static_cast<long long>(d_val);
+if (d_val != static_cast<double>(ll_val))
+{
+throw std::runtime_error("Type error: Bitwise OR operator '|' requires integer operands. Left operand is a non-integer number.");
+}
+left_int_val = ll_val;
+}
+else if (std::holds_alternative<bool>(left_val))
+{
+left_int_val = std::get<bool>(left_val) ? 1LL : 0LL;
+}
+else
+{
+throw std::runtime_error("Type error: Bitwise OR operator '|' can only be applied to integer or number (convertible to integer) operands. Left operand is of invalid type.");
+}
+
+if (std::holds_alternative<long long>(right_val))
+{
+right_int_val = std::get<long long>(right_val);
+}
+else if (std::holds_alternative<double>(right_val))
+{
+double d_val = std::get<double>(right_val);
+long long ll_val = static_cast<long long>(d_val);
+if (d_val != static_cast<double>(ll_val))
+{
+throw std::runtime_error("Type error: Bitwise OR operator '|' requires integer operands. Right operand is a non-integer number.");
+}
+right_int_val = ll_val;
+}
+else if (std::holds_alternative<bool>(right_val))
+{
+right_int_val = std::get<bool>(right_val) ? 1LL : 0LL;
+}
+else
+{
+throw std::runtime_error("Type error: Bitwise OR operator '|' can only be applied to integer or number (convertible to integer) operands. Right operand is of invalid type.");
+}
+
+return left_int_val | right_int_val;
+}
 
 throw std::runtime_error("Unsupported binary operator.");
 }
@@ -1934,6 +2244,7 @@ static const std::map<TokenType, std::string> tokenTypeNames = {
 {TokenType::NUMBER_KEYWORD, "NUMBER_KEYWORD"},
 {TokenType::BOOLEAN_KEYWORD, "BOOLEAN_KEYWORD"},
 {TokenType::COMMA, "COMMA"},
+{TokenType::PIPE, "PIPE"},
 {TokenType::EOF_TOKEN, "EOF_TOKEN"},
 {TokenType::UNKNOWN, "UNKNOWN"},
 };
@@ -2060,6 +2371,15 @@ advance();
 continue;
 }
 }
+else if (c == '#')
+{
+advance();
+while (peek() != '\n' && peek() != '\0')
+{
+advance();
+}
+continue;
+}
 break;
 }
 }
@@ -2109,8 +2429,7 @@ advance();
 char escaped_char = peek();
 if (escaped_char == '\0')
 {
-std::cerr << "Lexer Error: Unterminated escape sequence in string literal at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, "", startLine);
+throw std::runtime_error("Unterminated escape sequence in string literal at line " + std::to_string(startLine) + ".");
 }
 
 switch (escaped_char)
@@ -2128,7 +2447,6 @@ case 't':
 value += '\t';
 break;
 default:
-std::cerr << "Lexer Warning: Unrecognized escape sequence '\\" << escaped_char << "' in string literal at line " << startLine << ".\n";
 value += escaped_char;
 break;
 }
@@ -2142,8 +2460,7 @@ value += advance();
 
 if (peek() == '\0')
 {
-std::cerr << "Lexer Error: Unterminated string literal at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, "", startLine);
+throw std::runtime_error("Unterminated string literal at line " + std::to_string(startLine) + ".");
 }
 
 advance();
@@ -2182,13 +2499,11 @@ return Token(TokenType::NUMBER_LITERAL, lexeme, value, startLine);
 }
 catch (const std::out_of_range &)
 {
-std::cerr << "Lexer Error: Number literal out of range: " << lexeme << " at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, lexeme, startLine);
+throw std::runtime_error("Number literal out of range: " + lexeme + " at line " + std::to_string(startLine) + ".");
 }
 catch (const std::invalid_argument &)
 {
-std::cerr << "Lexer Error: Invalid number literal: " << lexeme << " at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, lexeme, startLine);
+throw std::runtime_error("Invalid number literal: " + lexeme + " at line " + std::to_string(startLine) + ".");
 }
 }
 else
@@ -2200,13 +2515,11 @@ return Token(TokenType::NUMBER_LITERAL, lexeme, value, startLine);
 }
 catch (const std::out_of_range &)
 {
-std::cerr << "Lexer Error: Integer literal out of range: " << lexeme << " at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, lexeme, startLine);
+throw std::runtime_error("Integer literal out of range: " + lexeme + " at line " + std::to_string(startLine) + ".");
 }
 catch (const std::invalid_argument &)
 {
-std::cerr << "Lexer Error: Invalid integer literal: " << lexeme << " at line " << startLine << ".\n";
-return Token(TokenType::UNKNOWN, lexeme, startLine);
+throw std::runtime_error("Invalid integer literal: " + lexeme + " at line " + std::to_string(startLine) + ".");
 }
 }
 }
@@ -2294,6 +2607,9 @@ return string();
 case ',':
 advance();
 return Token(TokenType::COMMA, ",", startLine);
+case '|':
+advance();
+return Token(TokenType::PIPE, "|", startLine);
 case '$':
 return identifierOrKeyword();
 default:
@@ -2306,8 +2622,6 @@ if (std::isdigit(c))
 return number();
 }
 
-std::cerr << "Lexer Error: Unexpected character '" << c << "' at line " << startLine << ".\n";
-advance();
-return Token(TokenType::UNKNOWN, std::string(1, c), startLine);
+throw std::runtime_error("Unexpected character '" + std::string(1, c) + "' at line " + std::to_string(startLine) + ".");
 }
 }

@@ -15,6 +15,7 @@
 #include "core/constants.h"
 #include "core/debugger.h"
 #include "extensions/extensions.h"
+#include "helpers/helpers.h"
 
 namespace fs = std::filesystem;
 
@@ -65,7 +66,6 @@ int process_single_file(const std::string &filename)
 
     debug_print_message("Starting interpretation for '" + filename + "'...");
     Evaluator evaluator;
-    registerAllExtensions(evaluator);
 
     evaluator.registerConstant("MCL_UPPERCASE_EVERYTHING", (long long)MCL_UPPERCASE_EVERYTHING);
     evaluator.registerConstant("MCL_UPPERCASE_TITLE", (long long)MCL_UPPERCASE_TITLE);
@@ -78,7 +78,10 @@ int process_single_file(const std::string &filename)
     evaluator.registerConstant("MCL_TRIM_MIDDLE", (long long)MCL_TRIM_MIDDLE);
     evaluator.registerConstant("MCL_TRIM_ENDS", (long long)MCL_TRIM_ENDS);
     evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
-    evaluator.registerConstant("MCL_TRIM_DEFAULT_CHARS", MCL_TRIM_DEFAULT_CHARS);
+    evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
+
+    registerAllExtensions(evaluator);
+    registerAllHelpers(evaluator);
 
     try
     {

@@ -114,7 +114,7 @@ Token Lexer::identifierOrKeyword()
         lexeme += advance();
     }
 
-    while (std::isalnum(peek()) || peek() == '_')
+    while (std::isalnum(peek()) || peek() == '_' || peek() == '-')
     {
         lexeme += advance();
     }

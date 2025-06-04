@@ -1,0 +1,8 @@
+echo right-trim("Hello, World!   ");
+echo right-trim("Hello, World!---", "-");
+echo right-trim("   \t\nHello, World!   ", " \t\n");
+echo right-trim("        ");
+echo right-trim("abc123", "123");
+echo right-trim("abcdefg", "efg");
+echo right-trim("   test   ", "");
+echo right-trim("no trim");

@@ -584,3 +584,23 @@ void Evaluator::interpret(std::unique_ptr<ProgramNode> ast)
 {
     evaluate(ast.get());
 }
+
+Value Evaluator::callNativeFunctionByName(const std::string &name, const std::vector<Value> &args)
+{
+    auto it = nativeFunctions.find(name);
+    if (it == nativeFunctions.end())
+    {
+        throw std::runtime_error("Runtime error: Attempted to call unknown native function '" + name + "'.");
+    }
+    return it->second(args);
+}
+
+Value Evaluator::getConstant(const std::string &name)
+{
+    auto it = variables.find(name);
+    if (it == variables.end())
+    {
+        throw std::runtime_error("Runtime error: Undefined constant '" + name + "'.");
+    }
+    return it->second.first;
+}
