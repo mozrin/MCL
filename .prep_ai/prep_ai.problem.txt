@@ -1,10 +1,8 @@
-We are going to create another extension called:
+Write me a full, verbose, complete, detailed, awesome
 
-echo(<mixed>, [...<mixed>])
+markdown
 
-that outputs 1 to N parameters to the standard
-out ... which is what I assume all functions
-currently do ... output to standard out.
+language reference document for the MCL language so far.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!

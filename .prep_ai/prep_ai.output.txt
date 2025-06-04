@@ -2,13 +2,11 @@ I am writing a interpreted language in cpp ... this is the code so far.
 Do not put comments in my code.
 Do not output files that have not changed.
 The current issue is below.
-We are going to create another extension called:
+Write me a full, verbose, complete, detailed, awesome
 
-echo(<mixed>, [...<mixed>])
+markdown
 
-that outputs 1 to N parameters to the standard
-out ... which is what I assume all functions
-currently do ... output to standard out.
+language reference document for the MCL language so far.
 
 DO NOT PUT ANY COMMENTS IN MY CODE!
 ONLY GIVE ME FILES THAT HAVE CHANGED!
@@ -19,16 +17,67 @@ DO NOT WRITE CODE UNLESS I ASK!
 ├── core/
 ├── extensions/
 │   ├── abs/
+│   ├── ceiling/
+│   ├── echo/
+│   ├── floor/
+│   ├── max/
+│   ├── min/
 │   ├── sqrt/
 │   ├── trim/
-│   └── uppercase/
+│   ├── uppercase/
+│   └── wrap/
 └── helpers/
     └── system/
 
-9 directories, 0 files
+15 directories, 0 files
 
 --- Baseline File Contents ---
 
+# /mcl/.prep_ai/../src/extensions/ceiling/ceiling.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_CEILING_H
+#define EXTENSION_CEILING_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_ceiling(const std::vector<Value> &args);
+
+void register_ceiling_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/ceiling/ceiling.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "ceiling.h"
+#include <cmath>
+#include <stdexcept>
+#include <variant>
+
+Value mcl_ceiling(const std::vector<Value> &args)
+{
+if (args.size() != 1)
+{
+throw std::runtime_error("Function 'ceiling' expects exactly 1 argument: ceiling(number).");
+}
+
+const Value &val = args[0];
+
+if (std::holds_alternative<long long>(val))
+{
+return static_cast<long long>(std::ceil(static_cast<double>(std::get<long long>(val))));
+}
+else if (std::holds_alternative<double>(val))
+{
+return std::ceil(std::get<double>(val));
+}
+else
+{
+throw std::runtime_error("Function 'ceiling' expects a number (integer or number) argument.");
+}
+}
+
+void register_ceiling_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("ceiling", mcl_ceiling);
+}
 # /mcl/.prep_ai/../src/extensions/uppercase/uppercase.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "uppercase.h"
 #include "../../core/constants.h"
@@ -263,9 +312,14 @@ void register_uppercase_extension(Evaluator &eval);
 void registerAllExtensions(Evaluator &eval)
 {
 register_abs_extension(eval);
+register_ceiling_extension(eval);
+register_floor_extension(eval);
+register_max_extension(eval);
+register_min_extension(eval);
 register_sqrt_extension(eval);
-register_uppercase_extension(eval);
 register_trim_extension(eval);
+register_uppercase_extension(eval);
+register_wrap_extension(eval);
 }
 # /mcl/.prep_ai/../src/extensions/abs/abs.h # NOT PART OF CODE DON'T ECHO IT EVER #
 #ifndef EXTENSION_ABS_H
@@ -319,9 +373,14 @@ eval.registerNativeFunction("abs", mcl_abs);
 #include "../core/evaluator.h"
 
 #include "abs/abs.h"
+#include "ceiling/ceiling.h"
+#include "floor/floor.h"
+#include "max/max.h"
+#include "min/min.h"
 #include "sqrt/sqrt.h"
-#include "uppercase/uppercase.h"
 #include "trim/trim.h"
+#include "uppercase/uppercase.h"
+#include "wrap/wrap.h"
 
 void registerAllExtensions(Evaluator &eval);
 
@@ -525,6 +584,279 @@ void register_trim_extension(Evaluator &eval);
 
 #define MCL_TRIM_CHARS_DEFAULT " \t\n\r\0\x0B"
 #define MCL_TRIM_CHARS_SPACE " "
+# /mcl/.prep_ai/../src/extensions/min/min.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_MIN_H
+#define EXTENSION_MIN_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_min(const std::vector<Value> &args);
+
+void register_min_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/min/min.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "min.h"
+#include <cmath>
+#include <stdexcept>
+#include <variant>
+#include <sstream>
+
+Value mcl_min(const std::vector<Value> &args)
+{
+if (args.empty())
+{
+throw std::runtime_error("Function 'min' expects at least 1 argument.");
+}
+
+Value current_min = args[0];
+
+if (!std::holds_alternative<long long>(current_min) && !std::holds_alternative<double>(current_min))
+{
+std::stringstream ss;
+ss << "Function 'min': All arguments must be numbers (integer or number), but argument 1 got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+case DeclaredType::ANY:
+ss << "null";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+bool result_is_double = std::holds_alternative<double>(current_min);
+double current_min_d = result_is_double ? std::get<double>(current_min) : static_cast<double>(std::get<long long>(current_min));
+
+for (size_t i = 1; i < args.size(); ++i)
+{
+const Value &next_val = args[i];
+
+double next_val_d;
+if (std::holds_alternative<long long>(next_val))
+{
+next_val_d = static_cast<double>(std::get<long long>(next_val));
+}
+else if (std::holds_alternative<double>(next_val))
+{
+next_val_d = std::get<double>(next_val);
+result_is_double = true;
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'min': All arguments must be numbers (integer or number), but argument " << (i + 1) << " got value of type ";
+switch (valueTypeToDeclaredType(next_val))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+case DeclaredType::ANY:
+ss << "null";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+if (next_val_d < current_min_d)
+{
+current_min_d = next_val_d;
+current_min = next_val;
+result_is_double = std::holds_alternative<double>(next_val);
+}
+else if (next_val_d == current_min_d && std::holds_alternative<double>(next_val))
+{
+result_is_double = true;
+}
+}
+
+if (result_is_double && std::holds_alternative<long long>(current_min)) {
+return static_cast<double>(std::get<long long>(current_min));
+}
+
+return current_min;
+}
+
+void register_min_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("min", mcl_min);
+}
+# /mcl/.prep_ai/../src/extensions/floor/floor.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_FLOOR_H
+#define EXTENSION_FLOOR_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_floor(const std::vector<Value> &args);
+
+void register_floor_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/floor/floor.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "floor.h"
+#include <cmath>
+#include <stdexcept>
+#include <variant>
+
+Value mcl_floor(const std::vector<Value> &args)
+{
+if (args.size() != 1)
+{
+throw std::runtime_error("Function 'floor' expects exactly 1 argument: floor(number).");
+}
+
+const Value &val = args[0];
+
+if (std::holds_alternative<long long>(val))
+{
+return static_cast<long long>(std::floor(static_cast<double>(std::get<long long>(val))));
+}
+else if (std::holds_alternative<double>(val))
+{
+return std::floor(std::get<double>(val));
+}
+else
+{
+throw std::runtime_error("Function 'floor' expects a number (integer or number) argument.");
+}
+}
+
+void register_floor_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("floor", mcl_floor);
+}
+# /mcl/.prep_ai/../src/extensions/max/max.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_MAX_H
+#define EXTENSION_MAX_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_max(const std::vector<Value> &args);
+
+void register_max_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/max/max.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "max.h"
+#include <cmath>
+#include <stdexcept>
+#include <variant>
+#include <sstream>
+
+Value mcl_max(const std::vector<Value> &args)
+{
+if (args.empty())
+{
+throw std::runtime_error("Function 'max' expects at least 1 argument.");
+}
+
+Value current_max = args[0];
+
+if (!std::holds_alternative<long long>(current_max) && !std::holds_alternative<double>(current_max))
+{
+std::stringstream ss;
+ss << "Function 'max': All arguments must be numbers (integer or number), but argument 1 got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+case DeclaredType::ANY:
+ss << "null";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+bool result_is_double = std::holds_alternative<double>(current_max);
+double current_max_d = result_is_double ? std::get<double>(current_max) : static_cast<double>(std::get<long long>(current_max));
+
+for (size_t i = 1; i < args.size(); ++i)
+{
+const Value &next_val = args[i];
+
+double next_val_d;
+if (std::holds_alternative<long long>(next_val))
+{
+next_val_d = static_cast<double>(std::get<long long>(next_val));
+}
+else if (std::holds_alternative<double>(next_val))
+{
+next_val_d = std::get<double>(next_val);
+result_is_double = true;
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'max': All arguments must be numbers (integer or number), but argument " << (i + 1) << " got value of type ";
+switch (valueTypeToDeclaredType(next_val))
+{
+case DeclaredType::STRING:
+ss << "string";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+case DeclaredType::ANY:
+ss << "null";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+if (next_val_d > current_max_d)
+{
+current_max_d = next_val_d;
+current_max = next_val;
+result_is_double = std::holds_alternative<double>(next_val);
+}
+else if (next_val_d == current_max_d && std::holds_alternative<double>(next_val))
+{
+result_is_double = true;
+}
+}
+
+if (result_is_double && std::holds_alternative<long long>(current_max)) {
+return static_cast<double>(std::get<long long>(current_max));
+}
+
+return current_max;
+}
+
+void register_max_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("max", mcl_max);
+}
 # /mcl/.prep_ai/../src/extensions/sqrt/sqrt.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include "sqrt.h"
 #include <cmath>
@@ -576,6 +908,171 @@ Value mcl_sqrt(const std::vector<Value> &args);
 void register_sqrt_extension(Evaluator &eval);
 
 #endif
+# /mcl/.prep_ai/../src/extensions/wrap/wrap.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_WRAP_H
+#define EXTENSION_WRAP_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_wrap(const std::vector<Value> &args);
+
+void register_wrap_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/wrap/wrap.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "wrap.h"
+#include "../../core/constants.h"
+#include <string>
+#include <vector>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
+
+Value mcl_wrap(const std::vector<Value> &args)
+{
+if (args.empty() || args.size() > 2)
+{
+throw std::runtime_error("Function 'wrap' expects 1 or 2 arguments: wrap(string $value, string $characters=\"\").");
+}
+
+std::string input_string;
+if (std::holds_alternative<std::string>(args[0]))
+{
+input_string = std::get<std::string>(args[0]);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'wrap': Argument 1 ($value) must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[0]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+
+std::string wrapper_chars = "";
+if (args.size() == 2)
+{
+if (std::holds_alternative<std::string>(args[1]))
+{
+wrapper_chars = std::get<std::string>(args[1]);
+}
+else
+{
+std::stringstream ss;
+ss << "Function 'wrap': Argument 2 ($characters) must be a string, but got value of type ";
+switch (valueTypeToDeclaredType(args[1]))
+{
+case DeclaredType::INTEGER:
+ss << "integer";
+break;
+case DeclaredType::NUMBER:
+ss << "number";
+break;
+case DeclaredType::BOOLEAN:
+ss << "boolean";
+break;
+default:
+ss << "unknown";
+break;
+}
+ss << ".";
+throw std::runtime_error(ss.str());
+}
+}
+
+std::string left_wrapper = "";
+std::string right_wrapper = "";
+
+size_t pipe_pos = wrapper_chars.find('|');
+
+if (pipe_pos == std::string::npos)
+{
+left_wrapper = wrapper_chars;
+}
+else
+{
+left_wrapper = wrapper_chars.substr(0, pipe_pos);
+right_wrapper = wrapper_chars.substr(pipe_pos + 1);
+}
+
+std::string result = left_wrapper + input_string + right_wrapper;
+
+return result;
+}
+
+void register_wrap_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("wrap", mcl_wrap);
+}
+# /mcl/.prep_ai/../src/extensions/wrap/wrap_constants.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef MCL_WRAP_CONSTANTS_H
+#define MCL_WRAP_CONSTANTS_H
+
+#define MCL_WRAP_CHARS_DEFAULT "'|'"
+#define MCL_WRAP_CHARS_HASHES "#|#"
+#define MCL_WRAP_CHARS_PIPES "\\||\\|"
+
+#endif
+# /mcl/.prep_ai/../src/extensions/echo/echo.h # NOT PART OF CODE DON'T ECHO IT EVER #
+#ifndef EXTENSION_ECHO_H
+#define EXTENSION_ECHO_H
+
+#include "../../core/value.h"
+#include "../../core/evaluator.h"
+
+Value mcl_echo(const std::vector<Value> &args);
+
+void register_echo_extension(Evaluator &eval);
+
+#endif
+# /mcl/.prep_ai/../src/extensions/echo/echo.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
+#include "echo.h"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
+
+Value mcl_echo(const std::vector<Value> &args)
+{
+if (args.empty())
+{
+throw std::runtime_error("Function 'echo' expects at least 1 argument.");
+}
+
+for (size_t i = 0; i < args.size(); ++i)
+{
+std::cout << args[i];
+if (i < args.size() - 1)
+{
+std::cout << " ";
+}
+}
+std::cout << std::endl;
+
+return std::monostate{};
+}
+
+void register_echo_extension(Evaluator &eval)
+{
+eval.registerNativeFunction("echo", mcl_echo);
+}
 # /mcl/.prep_ai/../src/main.cpp # NOT PART OF CODE DON'T ECHO IT EVER #
 #include <iostream>
 #include <fstream>
@@ -658,6 +1155,10 @@ evaluator.registerConstant("MCL_TRIM_MIDDLE", (long long)MCL_TRIM_MIDDLE);
 evaluator.registerConstant("MCL_TRIM_ENDS", (long long)MCL_TRIM_ENDS);
 evaluator.registerConstant("MCL_TRIM_ALL", (long long)MCL_TRIM_ALL);
 evaluator.registerConstant("MCL_TRIM_CHARS_DEFAULT", MCL_TRIM_CHARS_DEFAULT);
+
+evaluator.registerConstant("MCL_WRAP_CHARS_DEFAULT", MCL_WRAP_CHARS_DEFAULT);
+evaluator.registerConstant("MCL_WRAP_CHARS_HASHES", MCL_WRAP_CHARS_HASHES);
+evaluator.registerConstant("MCL_WRAP_CHARS_PIPES", MCL_WRAP_CHARS_PIPES);
 
 registerAllExtensions(evaluator);
 registerAllHelpers(evaluator);
@@ -1769,6 +2270,7 @@ return os;
 
 #include "../extensions/trim/trim_constants.h"
 #include "../extensions/uppercase/uppercase_constants.h"
+#include "../extensions/wrap/wrap_constants.h"
 
 #endif
 # /mcl/.prep_ai/../src/core/token.h # NOT PART OF CODE DON'T ECHO IT EVER #
